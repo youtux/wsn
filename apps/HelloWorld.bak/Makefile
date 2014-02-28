@@ -1,3 +1,0 @@
-COMPONENT=HelloWorldAppC
-include $(MAKERULES)
-

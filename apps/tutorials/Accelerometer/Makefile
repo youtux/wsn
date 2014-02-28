@@ -1,4 +1,0 @@
-COMPONENT=TemperatureAppC
-CFLAGS += -DPRINTFUART_ENABLED
-include $(MAKERULES)
-
