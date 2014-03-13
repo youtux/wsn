@@ -8,7 +8,7 @@ enum {
 
 typedef nx_struct wireless_msg {
 	nx_uint16_t senderId;
-	nx_uint16_t counter;
+	nx_uint16_t data;
 } wireless_msg_t;
 
 #endif

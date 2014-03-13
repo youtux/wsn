@@ -2,16 +2,16 @@
 #include "printfZ1.h"
 #include "Timer.h"
 
-#include "UserButton.h"
 
 module SensorNodeC {
     uses {
-        interface Timer<TMilli> as BlinkTimer;
         interface Leds;
         interface Boot;
 
-        interface Notify<button_state_t> as Button;
+        interface Timer<TMilli> as ReadTimer;
+        interface Read<uint16_t> as TemperatureRead;
 
+        // Radio interfaces
         interface SplitControl as AMControl;
         interface Packet;
         interface AMSend;
@@ -19,84 +19,61 @@ module SensorNodeC {
 }
 
 implementation {
-    message_t blinkMsg;
-    uint16_t counter;
-    bool busy;
+    message_t packet;
+    bool sending;
 
     event void Boot.booted() {
-        call Leds.led0On();
-
-        call Button.enable();
-
         printfz1_init();
+
         printfz1("SensorNode: boot\n");
+
+        // Init the Radio
         call AMControl.start();
     }
 
     event void AMControl.startDone(error_t err){
         if (err == SUCCESS){
             printfz1("SensorNode: Radio ON!\n");
-            printfz1("SinkNode: Push da button!!!\n");
-            call BlinkTimer.startPeriodic(1000);
+
+            // Start the reading timer
+            call ReadTimer.startPeriodic(1000);
         }
         else
             call AMControl.start();
     }
 
-    event void Button.notify(button_state_t val) {
-        if(val != BUTTON_RELEASED) {
-            return;
-        }
-
-        counter ++;
-        if (!busy){
-            wireless_msg_t* msgPayload = (wireless_msg_t*) (call Packet.getPayload(&blinkMsg, (uint8_t) 0));
-
-            msgPayload->senderId=1;
-            msgPayload->counter = counter;
-
-            if (call AMSend.send(AM_BROADCAST_ADDR, &blinkMsg, sizeof(wireless_msg_t)) == SUCCESS){
-                printfz1("SensorNode: Message [%d] sent correctly\n", counter);
-                busy = TRUE;
-            }
-            
-        }
+    event void ReadTimer.fired() {
+        call TemperatureRead.read();
     }
 
-    event void BlinkTimer.fired() {
+    event void TemperatureRead.readDone(error_t result, uint16_t val){
 
+        am_addr_t dst = AM_BROADCAST_ADDR;
+        // am_addr_t dst = 2;
+        // Remember: val is the temperature in °C multiplied by 10 (dec)
+        printfz1("SensorNode: Temperature is [%d].\n", val/16);
 
-        return;
+        if (!sending){
+            wireless_msg_t* msgPayload = (wireless_msg_t*) (call Packet.getPayload(&packet, sizeof(wireless_msg_t)));
 
+            msgPayload->senderId = 1;
+            msgPayload->data = val;
 
-
-
-
-
-
-
-        counter ++;
-        if (!busy){
-            wireless_msg_t* msgPayload = (wireless_msg_t*) (call Packet.getPayload(&blinkMsg, (uint8_t) 0));
-
-            msgPayload->senderId=1;
-            msgPayload->counter = counter;
-
-            if (call AMSend.send(AM_BROADCAST_ADDR, &blinkMsg, sizeof(wireless_msg_t)) == SUCCESS){
-                printfz1("SensorNode: Message [%d] sent correctly\n", counter);
-                busy = TRUE;
+            if (call AMSend.send(dst, &packet, sizeof(wireless_msg_t)) == SUCCESS){
+                printfz1("SensorNode: Sending message [%u] to [%u]\n", val, dst);
+                sending = TRUE;
             }
-            
         }
-        //call TempRead.read();
     }
 
     event void AMSend.sendDone(message_t* msg, error_t error){
-        if (&blinkMsg == msg)
-            busy = FALSE;
+        if (&packet == msg){
+            sending = FALSE;
+            printfz1("SensorNode: \tMessage sent.\n");
+        }
     }
 
     event void AMControl.stopDone(error_t err){
-        // pass
+        printfz1("SensorNode: Radio OFF!\n");
     }
 }
