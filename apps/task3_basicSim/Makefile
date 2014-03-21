@@ -1,0 +1,3 @@
+COMPONENT=BasicSimAppC
+
+include $(MAKERULES)

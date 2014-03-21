@@ -1,0 +1,3 @@
+COMPONENT=InspectVariableAppC
+
+include $(MAKERULES)
