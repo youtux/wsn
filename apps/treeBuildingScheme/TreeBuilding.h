@@ -4,7 +4,7 @@
 enum
 {
   AM_TREEBUILDING = 33,
-  REBUILD_PERIOD = 1024,//an exact second because in Nesc 1024 ticks per second 
+  REBUILD_PERIOD = 1024, //an exact second because in Nesc 1024 ticks per second 
 };
 
 // Remember: message size bounded to 29 bytes
