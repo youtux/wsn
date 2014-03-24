@@ -7,9 +7,19 @@ enum
   REBUILD_PERIOD = 1024,//an exact second because in Nesc 1024 ticks per second 
 };
 
-typedef nx_struct TreeBuilding
+// Remember: message size bounded to 29 bytes
+typedef nx_struct tree_building
 {
-  // INFORMATION NEEDED TO EVALUATE ROUTING PATHS
-} TreeBuilding;
+  nx_uint8_t hopcount;
+  nx_uint16_t batteryLevel;
+  nx_uint16_t seq;
+} tree_building_t;
+
+typedef struct packet_quality
+{
+  uint8_t hopcount;
+  uint8_t rssi;
+  uint16_t batteryLevel;
+} packet_quality_t;
 
 #endif
