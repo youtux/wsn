@@ -1,4 +1,14 @@
 apps/**/build
-.DS_Store
-._.DS_Store
+apps/**/simbuild
+apps/**/app.xml
+apps/**/TOSSIM.py
 
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# C extensions
+*.so
+
+.DS_Store
+._*
