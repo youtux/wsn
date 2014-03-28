@@ -78,11 +78,12 @@ def run_simulation(sim_time, topology_file):
     config_boot(t, nodes_count)
 
 # Add channels here. For instance:
-    t.addChannel("routing", sys.stdout)
+    #t.addChannel("routing", sys.stdout)
+    t.addChannel("collection", sys.stdout)
 
     simulation_loop(t, sim_time)
 
 
 
 # Make a call to run_simulation here
-run_simulation(10, "topology.out")
+run_simulation(300, "topology.out")
