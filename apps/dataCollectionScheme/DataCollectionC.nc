@@ -17,6 +17,7 @@ module DataCollectionC
     interface Random;
     interface Queue<DataMsg>;
     interface TreeConnection;
+    interface Read<uint16_t> as TempRead;
   }
 }
 implementation
@@ -74,9 +75,20 @@ implementation
   }
  
   event void TimerApp.fired(){
+    call TempRead.read();
+  }
+
+  event void TempRead.readDone(error_t result, uint16_t val){
+    /* Value read from zolertia must be divided by 16 */
+    /* On the tmote
+        realValue = 0.01 * val - 39.4
+    */
+    
     DataMsg data;
     data.source = TOS_NODE_ID;
-    data.value = ++seq;
+    data.value = val / 16;
+    data.sequence = ++seq;
+
     call Queue.enqueue(data);
     post flushMessagesQueue();
   }
