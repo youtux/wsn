@@ -9,7 +9,7 @@ enum
 
 typedef nx_struct DataMsg
 {
-	nx_uint16_t source;
+	nx_am_addr_t source;
 	nx_uint16_t value;
 	nx_uint16_t sequence;
 } DataMsg;

@@ -6,7 +6,9 @@ configuration DataCollectionAppC
 implementation
 {
   components DataCollectionC as App;
+
   components MainC, TreeRoutingC, ActiveMessageC, LedsC;
+
   components new TimerMilliC() as Timer0;
   components new TimerMilliC() as Timer1;
   components new AMSenderC(AM_DATAMSG);
@@ -23,22 +25,27 @@ implementation
 
   App.Boot -> MainC.Boot;
 
+  // Utilities
+  App.Queue -> QueueC;
+  App.Random -> RandomC;
+
+  // Sensors and actuators
+  App.Leds -> LedsC;
+  App.TempRead -> TempSensor.Read;
+
+  // Timers
   App.TimerApp -> Timer0;
   App.TimerRetransmit -> Timer1;
 
-  App.TempRead -> TempSensor.Read;
-
-  App.Queue -> QueueC;
-  App.Leds -> LedsC;
-  App.Random -> RandomC;
-
-  App.TreeConnection -> TreeRoutingC;
-
+  // Network stuff
   App.Packet -> AMSenderC;
   App.AMPacket -> ActiveMessageC;
   App.AMSend -> AMSenderC;
   App.AMControl -> ActiveMessageC;
   App.Receive -> AMReceiverC;
   App.Acks -> ActiveMessageC;
+
+  // Routing
+  App.TreeConnection -> TreeRoutingC;
 }
 
