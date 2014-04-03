@@ -6,7 +6,7 @@
 enum
 {
   AM_DATAMSG = 22,
-  APP_PERIOD = 5*1024,//=5 seconds
+  APP_PERIOD = 1 * 1024, // = 1 second(s)
 };
 
 typedef nx_struct DataMsg
