@@ -1,6 +1,8 @@
 #ifndef DATAMSG_H
 #define DATAMSG_H
 
+#include "AM.h"
+
 enum
 {
   AM_DATAMSG = 22,
