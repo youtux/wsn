@@ -1,4 +1,5 @@
 #include <Timer.h>
+#include <AM.h>
 #include "DataMsg.h"
 
 module DataCollectionC

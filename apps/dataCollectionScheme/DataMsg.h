@@ -1,7 +1,7 @@
 #ifndef DATAMSG_H
 #define DATAMSG_H
 
-#include "AM.h"
+#include <AM.h>
 
 enum
 {
