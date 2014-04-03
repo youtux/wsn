@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 from TOSSIM import *
 import sys, StringIO
 import random
