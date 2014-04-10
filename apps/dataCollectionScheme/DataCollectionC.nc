@@ -73,8 +73,8 @@ implementation
     if (error == SUCCESS){
       sending = TRUE;
     } else {
-      dbg("collection", "\n\n\n\nERROR\t%u\n", error);
-
+      dbg("collection", "\n\n\n\nERROR %u while calling AMSend.send(...)\t\n", error);
+      
       // Retry to send the message
       post flushMessagesQueue();
     }
@@ -141,7 +141,7 @@ implementation
 
         // If I'm a sensor
         default:
-          dbg("collection", "%s: Received [source=%d,value=%d,seq=%d] from %d. Forwarding to %d...\n", sim_time_string(), ((DataMsg *) recv_payload)->source, ((DataMsg *) recv_payload)->value, ((DataMsg *) recv_payload)->sequence, call AMPacket.source(recv_msg), current_parent);
+          // dbg("collection", "%s: Received [source=%d,value=%d,seq=%d] from %d. Forwarding to %d...\n", sim_time_string(), ((DataMsg *) recv_payload)->source, ((DataMsg *) recv_payload)->value, ((DataMsg *) recv_payload)->sequence, call AMPacket.source(recv_msg), current_parent);
 
           // If the queue is full, discard the message
           if (call Queue.size() == call Queue.maxSize()){
@@ -163,6 +163,8 @@ implementation
   ONLY be sent to the new parent (unicast, NOT broadcast).*/
   event void TreeConnection.parentUpdate(uint16_t parent){
     current_parent = parent;
+
+    dbg("collection", "%s: New parent obtained: %d.\n", sim_time_string(), parent);
 
     if( !known_parent && TOS_NODE_ID != 0){
       // Start collecting data if this was the first time I got a parent
