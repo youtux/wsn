@@ -79,14 +79,14 @@ def run_simulation(sim_time, topology_file):
     load_noise(t, nodes_count)
     config_boot(t, nodes_count)
 
-# Add channels here. For instance:
-    #t.addChannel("routing", sys.stdout)
+    # Add channels here. For instance:
+    
     t.addChannel("MulticastToken", sys.stdout)
-    #t.addChannel("TreeRoutingCtl", sys.stdout)
+    
 
     simulation_loop(t, sim_time)
 
 
 
 # Make a call to run_simulation here
-run_simulation(300, "multicast-topology.out")
+run_simulation(300, "project-topology.out")

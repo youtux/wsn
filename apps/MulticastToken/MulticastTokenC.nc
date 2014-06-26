@@ -102,11 +102,54 @@ implementation {
     ulog("MulticastToken", "--- HANDLED %d ---", data);
   }
 
+  void setColor(){
+    switch (TOS_NODE_ID){
+    case 0:
+      node_colors = MT_RED;
+      break;
+    case 1:
+      node_colors = MT_YELLOW;
+      break;
+    case 2:
+      node_colors = MT_GREEN;
+      break;
+    case 3:
+      node_colors = MT_BLUE;
+      break;
+    case 4:
+      node_colors = MT_RED;
+      break;
+    case 5:
+      node_colors = MT_BLUE;
+      break;
+    case 6:
+      node_colors = MT_GREEN;
+      break;
+    case 7:
+      node_colors = MT_GREEN;
+      break;
+    case 8:
+      node_colors = MT_YELLOW;
+      break;
+    case 9:
+      node_colors = MT_RED;
+      break;
+    case 10:
+      node_colors = MT_RED;
+      break;
+    case 11:
+      node_colors = MT_YELLOW;
+      break;
+    case 12:
+      node_colors = MT_YELLOW;
+      break;
+    default:
+      ulog("MulticastToken", "FATAL ERROR: I don't know what color to set");
+    }
+  }
+
   event void Boot.booted() {
-    if (TOS_NODE_ID == 0)
-      node_colors = MT_WHITE;
-    else
-      node_colors = TOS_NODE_ID % 256;
+    setColor();
 
     ulog("MulticastToken", "Colors enabled: %8s", btoa(node_colors));
 
@@ -140,7 +183,7 @@ implementation {
 
   event void SendTimer.fired() {
     dataToSend = call Random.rand16();
-    if (TOS_NODE_ID == 3)
+    if (TOS_NODE_ID == 8)
       post sendData();
   }
 
@@ -155,8 +198,8 @@ implementation {
 
     payload = (nx_mt_msg_t *) call CtpSend.getPayload(&mtPacket, sizeof(nx_mt_msg_t));
 
-    payload->flags = MT_FLAGS_DATA | MT_FLAGS_ANYCAST;
-    payload->color = 0b0100;
+    payload->flags = MT_FLAGS_DATA; //| MT_FLAGS_ANYCAST;
+    payload->color = MT_RED;
     payload->data = dataToSend;
 
     ulog("MulticastToken", "Sending data [color=%8s, data=%u]", btoa(payload->color), payload->data);
@@ -400,11 +443,11 @@ implementation {
     }else{
       // Data Message
 
-      // If the message is for me
-      if (isForMe(p)){
+      // If the message is for me and I can stop it
+      if (isForMe(p) && isAnycast(p)){
         handleReceivedData(p->data);
         // If the message is anycast, then stop it: I have already received it.
-        return !isAnycast(p);
+        return FALSE;
       }
       return TRUE;
     }
