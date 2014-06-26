@@ -29,8 +29,8 @@ enum {
 typedef uint8_t mt_flags_t;
 typedef nx_uint8_t nx_mt_flags_t;
 
-typedef uint16_t mt_data_t;
-typedef nx_uint16_t nx_mt_data_t;
+typedef uint32_t mt_data_t;
+typedef nx_uint32_t nx_mt_data_t;
 
 typedef nx_struct nx_mt_data {
   nx_mt_flags_t flags;

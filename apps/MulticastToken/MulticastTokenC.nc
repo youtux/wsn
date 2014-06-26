@@ -49,19 +49,8 @@ implementation {
 
   bool sending = FALSE;
 
-  uint16_t dataToSend = 0;
+  mt_data_t dataToSend = 0;
 
-  /*
-  message_t mtRebuildPacket;
-  uint8_t rebuildSeqno;
-  
-  // Packet for multicast message
-  message_t mtDataPacket;
-  uint8_t dataSeqno;
-
-  // Packet for multicast token dissemination
-  message_t mtUpdatePacket;
-  */
   // Current node enabled colors
   color_t node_colors = 0;
 
@@ -99,10 +88,14 @@ implementation {
   }
 
   void handleReceivedData(mt_data_t data){
+    dbg_clear("MulticastTokenStatistics", "%s : %u : receive [ data = %u ]\n", sim_time_string(), TOS_NODE_ID, data);
     ulog("MulticastToken", "--- HANDLED %d ---", data);
   }
 
   void setColor(){
+
+    /*
+    // project-topology.out
     switch (TOS_NODE_ID){
     case 0:
       node_colors = MT_RED;
@@ -145,7 +138,33 @@ implementation {
       break;
     default:
       ulog("MulticastToken", "FATAL ERROR: I don't know what color to set");
+    }*/
+
+    // topology1.out
+    switch (TOS_NODE_ID){
+    case 0:
+      node_colors = 0;
+      break;
+    case 1:
+      node_colors = MT_RED;
+      break;
+    case 2:
+      node_colors = MT_BLACK;
+      break;
+    case 3:
+    case 4:
+    case 5:
+      node_colors = MT_WHITE;
+      break;
+    case 6:
+    case 7:
+      node_colors = MT_BLACK;
+      break;
+    default:
+      ulog("MulticastToken", "FATAL ERROR: I don't know what color to set");
     }
+
+    dbg_clear("MulticastTokenStatistics", "%s : %u : status [ color = %u ]\n", sim_time_string(), TOS_NODE_ID, node_colors);
   }
 
   event void Boot.booted() {
@@ -160,16 +179,17 @@ implementation {
     if (error != SUCCESS)
       call RadioControl.start();
     else {
+      // If I'm the root, immediately flood the REBUILD message
       if (TOS_NODE_ID == 0){
         call RootControl.setRoot();
 
-        rebuildSeqno++;
+        // Random sequence number for the REBUILD message
+        rebuildSeqno = (uint8_t) call Random.rand16();
         post broadcastRebuildTree();
 
         call TimeoutUpdateColors.startPeriodic(MT_PERIOD);
-      }else{
-        call SendTimer.startPeriodic(4 * 1024);
-      }
+      }else
+        call SendTimer.startPeriodic(11 * 1024);
 
       call RoutingControl.start();
     }
@@ -177,13 +197,13 @@ implementation {
 
   event void TimeoutUpdateColors.fired() {
     ulog("MulticastToken", "Time to rebuild the MT tree...");
-    rebuildSeqno++;
+    rebuildSeqno = (uint8_t) call Random.rand16();
     post broadcastRebuildTree();
   }
 
   event void SendTimer.fired() {
-    dataToSend = call Random.rand16();
-    if (TOS_NODE_ID == 8)
+    dataToSend = call Random.rand32();
+    if (TOS_NODE_ID == 7)
       post sendData();
   }
 
@@ -198,10 +218,11 @@ implementation {
 
     payload = (nx_mt_msg_t *) call CtpSend.getPayload(&mtPacket, sizeof(nx_mt_msg_t));
 
-    payload->flags = MT_FLAGS_DATA; //| MT_FLAGS_ANYCAST;
-    payload->color = MT_RED;
+    payload->flags = MT_FLAGS_DATA; // | MT_FLAGS_ANYCAST;
+    payload->color = MT_WHITE;
     payload->data = dataToSend;
 
+    dbg_clear("MulticastTokenStatistics", "%s : %u : send [ data = %u , color = %u , multicast = %d ]\n", sim_time_string(), TOS_NODE_ID, payload->data, payload->color, !isAnycast(payload));
     ulog("MulticastToken", "Sending data [color=%8s, data=%u]", btoa(payload->color), payload->data);
     sendResult = call CtpSend.send(&mtPacket, sizeof(nx_mt_msg_t));
 
@@ -327,11 +348,14 @@ implementation {
     // Case of REBUILD message
     if (isRebuild(p)){
       // Drop duplicate
-      if (p->seqno <= rebuildSeqno)
+      if (p->seqno == rebuildSeqno)
         return msg;
 
       // Update sequence number for the rebuild stage
       rebuildSeqno = p->seqno;
+
+      // Reset data seqno
+      dataSeqno = 0;
 
       // Reset children colors
       children_colors = 0;

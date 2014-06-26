@@ -1,12 +1,19 @@
 #!/usr/bin/env python
 
 from TOSSIM import *
+from tinyos.tossim.TossimApp import *
 import sys, StringIO
 import random
 import os
+import pdb
 
 # The maximum number of lines to load from the noise file.
 max_noise_lines = 100
+
+app = NescApp("Multicast Token", "app.xml")
+
+#fetch the list of variables
+vars = app.variables.variables()
 
 # Creates the network topology from a file containing gain values for each
 # pair of nodes. Each line of the file must have the following format:
@@ -31,7 +38,7 @@ def load_topology(r, topology_file):
     f.close()
 
     nodes_count += 1
-    print "Found", nodes_count, "nodes";
+    print "nodes_count =", nodes_count
     return nodes_count
 
 
@@ -51,7 +58,7 @@ def load_noise(t, nodes_count):
                 t.getNode(i).addNoiseTraceReading(val)
 
     for i in range(0, nodes_count):
-        print "Creating noise model for", i;
+        #print "Creating noise model for", i;
         t.getNode(i).createNoiseModel()
 
 
@@ -59,7 +66,7 @@ def load_noise(t, nodes_count):
 def config_boot(t, nodes_count):
     for i in range(0, nodes_count):
         bootTime = random.randint(1, 1000000)
-        print "Node", i, "booting at", bootTime;
+        #print "Node", i, "booting at", bootTime;
         t.getNode(i).bootAtTime(bootTime)
 
 
@@ -81,12 +88,17 @@ def run_simulation(sim_time, topology_file):
 
     # Add channels here. For instance:
     
-    t.addChannel("MulticastToken", sys.stdout)
+    #t.addChannel("MulticastToken", sys.stdout)
+    t.addChannel("MulticastTokenStatistics", sys.stdout)
     
-
     simulation_loop(t, sim_time)
+    
+    # t1 = t.getNode(1)
+    # v1 = t1.getVariable("dataToSend")
+    # pdb.set_trace()
 
+    # simulation_loop(t, sim_time/2)    
 
 
 # Make a call to run_simulation here
-run_simulation(300, "project-topology.out")
+run_simulation(60 * 20 , "topology1.out")
