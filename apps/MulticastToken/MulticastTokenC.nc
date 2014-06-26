@@ -16,10 +16,11 @@ module MulticastTokenC {
   uses{
     interface Boot;
 
-    //interface Timer<TMilli> as TimerUpdateColors;
+    interface Random;
 
     interface Timer<TMilli> as TimeoutUpdateColors;
     interface Timer<TMilli> as SleepBeforeSendingUpdates;
+    interface Timer<TMilli> as SendTimer;
 
     interface Queue<message_t *> as ForwardQueue;
     interface Pool<message_t> as ForwardPool;
@@ -48,6 +49,8 @@ implementation {
 
   bool sending = FALSE;
 
+  uint16_t dataToSend = 0;
+
   /*
   message_t mtRebuildPacket;
   uint8_t rebuildSeqno;
@@ -65,10 +68,35 @@ implementation {
   // Colors of the children
   color_t children_colors = 0;
 
+  task void sendData();
   task void broadcastRebuildTree();
   task void updateColors();
 
   task void flushForwardQueue();
+
+  bool isAnycast(nx_mt_msg_t* payload){
+    return payload->flags & MT_FLAGS_ANYCAST;
+  }
+
+  bool isRebuild(nx_mt_msg_t* payload){
+    return payload->flags & MT_FLAGS_REBUILD;
+  }
+
+  bool isUpdate(nx_mt_msg_t* payload){
+    return payload->flags & MT_FLAGS_UPDATE;
+  }
+
+  bool isData(nx_mt_msg_t* payload){
+    return payload->flags & MT_FLAGS_DATA;
+  }
+
+  bool isForMe(nx_mt_msg_t* payload){
+    return payload->color & node_colors;
+  }
+
+  bool isForMyChildren(nx_mt_msg_t* payload){
+    return payload->color & children_colors;
+  }
 
   void handleReceivedData(mt_data_t data){
     ulog("MulticastToken", "--- HANDLED %d ---", data);
@@ -96,6 +124,8 @@ implementation {
         post broadcastRebuildTree();
 
         call TimeoutUpdateColors.startPeriodic(MT_PERIOD);
+      }else{
+        call SendTimer.startPeriodic(4 * 1024);
       }
 
       call RoutingControl.start();
@@ -106,6 +136,38 @@ implementation {
     ulog("MulticastToken", "Time to rebuild the MT tree...");
     rebuildSeqno++;
     post broadcastRebuildTree();
+  }
+
+  event void SendTimer.fired() {
+    dataToSend = call Random.rand16();
+    if (TOS_NODE_ID == 3)
+      post sendData();
+  }
+
+  task void sendData() {
+    nx_mt_msg_t *payload;
+    error_t sendResult;
+
+    if (sending){
+      post sendData();
+      return;
+    }
+
+    payload = (nx_mt_msg_t *) call CtpSend.getPayload(&mtPacket, sizeof(nx_mt_msg_t));
+
+    payload->flags = MT_FLAGS_DATA | MT_FLAGS_ANYCAST;
+    payload->color = 0b0100;
+    payload->data = dataToSend;
+
+    ulog("MulticastToken", "Sending data [color=%8s, data=%u]", btoa(payload->color), payload->data);
+    sendResult = call CtpSend.send(&mtPacket, sizeof(nx_mt_msg_t));
+
+    if (sendResult == SUCCESS)
+      sending = TRUE;
+    else
+      post sendData();
+
+    return;
   }
 
   task void broadcastRebuildTree(){
@@ -183,10 +245,10 @@ implementation {
     payload = call AMSend.getPayload(msg, sizeof(nx_mt_msg_t));
 
     if (error == SUCCESS){
-      if ( TOS_NODE_ID != 0 && (payload->flags & MT_FLAGS_REBUILD) ){
+      if ( TOS_NODE_ID != 0 && isRebuild(payload) ){
         // Correctly sent the REBUILD message. Now sleep before updating colors
         call SleepBeforeSendingUpdates.startOneShot(SLEEP_BEFORE_SENDING_UPDATES);
-      }else if (payload->flags & MT_FLAGS_DATA){
+      }else if (isData(payload)){
         // Correctlu sent the DATA message. Now remove it from the pool and the queue
         if (msg != call ForwardQueue.head()){
           ulog("MulticastToken", "FATAL ERROR: expected Queue.head() and msg to be the same");
@@ -220,7 +282,7 @@ implementation {
     nx_mt_msg_t *p = (nx_mt_msg_t *) payload;
 
     // Case of REBUILD message
-    if (p->flags & MT_FLAGS_REBUILD){
+    if (isRebuild(p)){
       // Drop duplicate
       if (p->seqno <= rebuildSeqno)
         return msg;
@@ -233,45 +295,53 @@ implementation {
       
       //TODO: wait random time
       post broadcastRebuildTree();
-    }else if (p->flags & MT_FLAGS_UPDATE){ // Case of UPDATE message
+    }else if (isUpdate(p)){ // Case of UPDATE message
       // Update the children colors
       children_colors |= p->color;
 
       ulog("MulticastToken", "Received update [p->colors=%8s]", btoa(p->color));
       ulog("MulticastToken", "    children_colors=%8s", btoa(children_colors));
-    }else if (p->flags & MT_FLAGS_DATA){
+    }else if (isData(p)){
       // Data Message
 
-      // If the message is for me
-      if (p->color & node_colors){
-        
-        // If the message is anycast, then stop it: I have already received it.
-        // Otherwise put it in the queue and send it
-        if (! (p->flags & MT_FLAGS_ANYCAST)){
-          // Get a fresh memory location for the new packet to send
-          newmsg = call ForwardPool.get();
-          if (newmsg == NULL){
-            return msg;
-          }
-
-          // Copy the received payload inside the new packet payload
-          out = (nx_mt_msg_t *) call AMSend.getPayload(newmsg, sizeof(nx_mt_msg_t));
-          if (out == NULL){
-            call ForwardPool.put(newmsg);
-            return msg;
-          }
-          memcpy(out, p, sizeof(nx_mt_msg_t));
-
-          // Update the sequence number
-          out->seqno = dataSeqno++;
-
-          if (call ForwardQueue.enqueue(newmsg) != SUCCESS){
-            call ForwardPool.put(newmsg);
-            return msg;
-          }
-          post flushForwardQueue();
+      if (TOS_NODE_ID == 0)
+        dataSeqno++;
+      else{
+        if (p->seqno <= dataSeqno)
+          return msg;
+        dataSeqno = p->seqno;
+      }
+      // I must forward the packet if my children belong to it and if either:
+      // 1)the packet is MULTICAST 
+      // 2)the packet ANYCAST & I don't belong to it
+      // Otherwise put it in the queue and send it
+      if ( isForMyChildren(p) && (
+          !isAnycast(p) || (isAnycast(p) && !isForMe(p))
+          ) ){
+        // Get a fresh memory location for the new packet to send
+        newmsg = call ForwardPool.get();
+        if (newmsg == NULL){
+          return msg;
         }
 
+        // Copy the received payload inside the new packet payload
+        out = (nx_mt_msg_t *) call AMSend.getPayload(newmsg, sizeof(nx_mt_msg_t));
+        if (out == NULL){
+          call ForwardPool.put(newmsg);
+          return msg;
+        }
+        memcpy(out, p, sizeof(nx_mt_msg_t));
+
+        out->seqno = dataSeqno;
+
+        if (call ForwardQueue.enqueue(newmsg) != SUCCESS){
+          call ForwardPool.put(newmsg);
+          return msg;
+        }
+        post flushForwardQueue();
+      }
+      // If the message is for me
+      if (isForMe(p)){
         handleReceivedData(p->data);
       }
 
@@ -281,56 +351,60 @@ implementation {
 
   event message_t* AMReceive.receive(message_t* msg, void* payload, uint8_t len){
     nx_mt_msg_t *p = (nx_mt_msg_t *) payload;
-    //ulog("MulticastToken", "Received Rebuild [seqno=%d]", p->seqno);
+    //ulog("MulticastToken", "Received message!");
 
-    if (p->flags & MT_FLAGS_UPDATE){
+    if (isUpdate(p)){
       ulog("MulticastToken", "FATAL ERROR: received MT_FLAGS_UPDATE from AMReceive!");
       return msg;
     }
+    
+    // Check if I've already seen it
+    if ( isData(p) && p->seqno <= dataSeqno )
+      return msg;
+    
     return receiveDelegate(msg, payload, len);
   }
 
   event message_t* CtpReceive.receive(message_t* msg, void* payload, uint8_t len) {
     nx_mt_msg_t *p = (nx_mt_msg_t *) payload;
 
-    if (p->flags & MT_FLAGS_REBUILD){
+    if (isRebuild(p)){
       // This should never happen
       ulog("MulticastToken", "FATAL ERROR: received MT_FLAGS_REBUILD from CtpReceive!");
       return msg;
     }
+
     return receiveDelegate(msg, payload, len);
   }
 
   event bool CtpIntercept.forward(message_t* msg, void* payload, uint8_t len){
     nx_mt_msg_t* p = (nx_mt_msg_t *) payload;
-    bool needToUpdate;
+    bool needToForward;
 
-    if (p->flags & MT_FLAGS_UPDATE){
+    if (isUpdate(p)){
       ulog("MulticastToken", "Intercepted message [colors=%8s]", btoa(p->color));
 
-      // needToUpdate will be true if the p->node_colors is included in the already sent colors (i.e. children_colors | node_colors)
-      needToUpdate = ((p->color | children_colors | node_colors) != (children_colors | node_colors));
+      // needToForward will be true if the p->node_colors is included in the already sent colors (i.e. children_colors | node_colors)
+      needToForward = ((p->color | children_colors | node_colors) != (children_colors | node_colors));
 
       // update the children colors adding the received ones
       children_colors |= (p->color);
 
-      ulog("MulticastToken", "End of intercept. Colors: [children=%8s], forward=%d", btoa(children_colors), needToUpdate);
+      ulog("MulticastToken", "End of intercept. Colors: [children=%8s], forward=%d", btoa(children_colors), needToForward);
 
-      return needToUpdate;
-    }else if (p->flags & MT_FLAGS_REBUILD){
+      return needToForward;
+    }else if (isRebuild(p)){
       // This should never happen
       ulog("MulticastToken", "FATAL ERROR: received MT_FLAGS_REBUILD from CtpForward!");
       return FALSE;
     }else{
       // Data Message
-      // TODO
-      ulog("MulticastToken", "TODO: handling data message");
 
       // If the message is for me
-      if (p->color & node_colors){
+      if (isForMe(p)){
         handleReceivedData(p->data);
         // If the message is anycast, then stop it: I have already received it.
-        return ! (p->flags & MT_FLAGS_ANYCAST);
+        return !isAnycast(p);
       }
       return TRUE;
     }
