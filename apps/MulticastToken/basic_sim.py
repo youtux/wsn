@@ -82,6 +82,7 @@ def run_simulation(sim_time, topology_file):
 # Add channels here. For instance:
     #t.addChannel("routing", sys.stdout)
     t.addChannel("MulticastToken", sys.stdout)
+    #t.addChannel("TreeRoutingCtl", sys.stdout)
 
     simulation_loop(t, sim_time)
 

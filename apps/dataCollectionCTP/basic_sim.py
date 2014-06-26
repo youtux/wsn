@@ -82,6 +82,7 @@ def run_simulation(sim_time, topology_file):
 # Add channels here. For instance:
     #t.addChannel("routing", sys.stdout)
     t.addChannel("collection", sys.stdout)
+    t.addChannel("Forwarder", sys.stdout)
 
     simulation_loop(t, sim_time)
 

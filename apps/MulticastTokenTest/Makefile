@@ -1,8 +1,0 @@
-COMPONENT=MulticastTokenTestAppC
-
-MULTICAST_TOKEN_PATH=../MulticastToken
-
-CFLAGS += -I$(MULTICAST_TOKEN_PATH)
-
-include $(MAKERULES)
-

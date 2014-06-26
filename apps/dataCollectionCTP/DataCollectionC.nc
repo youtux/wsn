@@ -51,6 +51,7 @@ implementation
   event void TempRead.readDone(error_t result, uint16_t val){
     uint16_t tempValue;
     TemperatureCollectionMsg* payload;
+    int i, vall;
 
 #ifndef TOSSIM
     tempValue = val / 16;
@@ -64,6 +65,7 @@ implementation
     if (sending)
       return;
 
+    dbg("collection", "Collection: going to call Send.send with msg %x and len %hhu\n", &packet, sizeof(TemperatureCollectionMsg));
     if (call Send.send(&packet, sizeof(TemperatureCollectionMsg)) == SUCCESS)
       sending = TRUE;
   }
