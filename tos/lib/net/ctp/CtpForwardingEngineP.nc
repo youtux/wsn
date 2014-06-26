@@ -486,14 +486,16 @@ implementation {
     // Forwarded packet: success or failure
     if (qe->client < CLIENT_COUNT) { 
       clientPtrs[qe->client] = qe;
-      signal Send.sendDone[qe->client](msg, SUCCESS);
+      // signal Send.sendDone[qe->client](msg, SUCCESS);
       if (success) {
+        signal Send.sendDone[qe->client](msg, SUCCESS);
 	dbg("CtpForwarder", "%s: packet %hu.%hhu for client %hhu acknowledged.\n", __FUNCTION__, call CollectionPacket.getOrigin(msg), call CollectionPacket.getSequenceNumber(msg), qe->client);
 	call CollectionDebug.logEventMsg(NET_C_FE_SENT_MSG, 
 					 call CollectionPacket.getSequenceNumber(msg), 
 					 call CollectionPacket.getOrigin(msg), 
                                          call AMPacket.destination(msg));
       } else {
+        signal Send.sendDone[qe->client](msg, FAIL);
 	dbg("CtpForwarder", "%s: packet %hu.%hhu for client %hhu dropped.\n", __FUNCTION__, call CollectionPacket.getOrigin(msg), call CollectionPacket.getSequenceNumber(msg), qe->client);
 	call CollectionDebug.logEventMsg(NET_C_FE_SENDDONE_FAIL_ACK_SEND, 
 					 call CollectionPacket.getSequenceNumber(msg), 
