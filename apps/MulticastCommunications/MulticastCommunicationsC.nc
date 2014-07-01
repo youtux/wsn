@@ -1,4 +1,4 @@
-#include "MulticastToken.h"
+#include "MulticastCommunications.h"
 #include "functions.c"
 
 #include <AM.h>
@@ -12,7 +12,7 @@
   #define ulog(streamID, format, ...)
 #endif
 
-module MulticastTokenC {
+module MulticastCommunicationsC {
   uses{
     interface Boot;
 
@@ -33,8 +33,6 @@ module MulticastTokenC {
     interface Intercept as CtpIntercept;
     interface CtpPacket;
 
-    //interface Packet;
-    //interface AMPacket;
 
     interface AMSend as AMSend;
     interface Receive as AMReceive;
@@ -49,13 +47,13 @@ implementation {
 
   bool sending = FALSE;
 
-  mt_data_t dataToSend = 0;
+  mc_data_t dataToSend = 0;
 
   // Current node enabled colors
-  color_t node_colors = 0;
+  mc_color_t node_colors = 0;
 
   // Colors of the children
-  color_t children_colors = 0;
+  mc_color_t children_colors = 0;
 
   task void sendData();
   task void broadcastRebuildTree();
@@ -63,33 +61,33 @@ implementation {
 
   task void flushForwardQueue();
 
-  bool isAnycast(nx_mt_msg_t* payload){
-    return payload->flags & MT_FLAGS_ANYCAST;
+  bool isAnycast(nx_mc_msg_t* payload){
+    return payload->flags & MC_FLAGS_ANYCAST;
   }
 
-  bool isRebuild(nx_mt_msg_t* payload){
-    return payload->flags & MT_FLAGS_REBUILD;
+  bool isRebuild(nx_mc_msg_t* payload){
+    return payload->flags & MC_FLAGS_REBUILD;
   }
 
-  bool isUpdate(nx_mt_msg_t* payload){
-    return payload->flags & MT_FLAGS_UPDATE;
+  bool isUpdate(nx_mc_msg_t* payload){
+    return payload->flags & MC_FLAGS_UPDATE;
   }
 
-  bool isData(nx_mt_msg_t* payload){
-    return payload->flags & MT_FLAGS_DATA;
+  bool isData(nx_mc_msg_t* payload){
+    return payload->flags & MC_FLAGS_DATA;
   }
 
-  bool isForMe(nx_mt_msg_t* payload){
+  bool isForMe(nx_mc_msg_t* payload){
     return payload->color & node_colors;
   }
 
-  bool isForMyChildren(nx_mt_msg_t* payload){
+  bool isForMyChildren(nx_mc_msg_t* payload){
     return payload->color & children_colors;
   }
 
-  void handleReceivedData(mt_data_t data){
-    dbg_clear("MulticastTokenStatistics", "%s : %u : receive [ data = %u ]\n", sim_time_string(), TOS_NODE_ID, data);
-    ulog("MulticastToken", "--- HANDLED %d ---", data);
+  void handleReceivedData(mc_data_t data){
+    dbg_clear("MulticastCommunicationsStatistics", "%s : %u : receive [ data = %u ]\n", sim_time_string(), TOS_NODE_ID, data);
+    ulog("MulticastCommunications", "--- HANDLED %d ---", data);
   }
 
   void setColor(){
@@ -98,46 +96,46 @@ implementation {
     // project-topology.out
     switch (TOS_NODE_ID){
     case 0:
-      node_colors = MT_RED;
+      node_colors = MC_RED;
       break;
     case 1:
-      node_colors = MT_YELLOW;
+      node_colors = MC_YELLOW;
       break;
     case 2:
-      node_colors = MT_GREEN;
+      node_colors = MC_GREEN;
       break;
     case 3:
-      node_colors = MT_BLUE;
+      node_colors = MC_BLUE;
       break;
     case 4:
-      node_colors = MT_RED;
+      node_colors = MC_RED;
       break;
     case 5:
-      node_colors = MT_BLUE;
+      node_colors = MC_BLUE;
       break;
     case 6:
-      node_colors = MT_GREEN;
+      node_colors = MC_GREEN;
       break;
     case 7:
-      node_colors = MT_GREEN;
+      node_colors = MC_GREEN;
       break;
     case 8:
-      node_colors = MT_YELLOW;
+      node_colors = MC_YELLOW;
       break;
     case 9:
-      node_colors = MT_RED;
+      node_colors = MC_RED;
       break;
     case 10:
-      node_colors = MT_RED;
+      node_colors = MC_RED;
       break;
     case 11:
-      node_colors = MT_YELLOW;
+      node_colors = MC_YELLOW;
       break;
     case 12:
-      node_colors = MT_YELLOW;
+      node_colors = MC_YELLOW;
       break;
     default:
-      ulog("MulticastToken", "FATAL ERROR: I don't know what color to set");
+      ulog("MulticastCommunications", "FATAL ERROR: I don't know what color to set");
     }*/
 
     // topology1.out
@@ -146,31 +144,31 @@ implementation {
       node_colors = 0;
       break;
     case 1:
-      node_colors = MT_RED;
+      node_colors = MC_RED;
       break;
     case 2:
-      node_colors = MT_BLACK;
+      node_colors = MC_BLACK;
       break;
     case 3:
     case 4:
     case 5:
-      node_colors = MT_WHITE;
+      node_colors = MC_WHITE;
       break;
     case 6:
     case 7:
-      node_colors = MT_BLACK;
+      node_colors = MC_BLACK;
       break;
     default:
-      ulog("MulticastToken", "FATAL ERROR: I don't know what color to set");
+      ulog("MulticastCommunications", "FATAL ERROR: I don't know what color to set");
     }
 
-    dbg_clear("MulticastTokenStatistics", "%s : %u : status [ color = %u ]\n", sim_time_string(), TOS_NODE_ID, node_colors);
+    dbg_clear("MulticastCommunicationsStatistics", "%s : %u : status [ color = %u ]\n", sim_time_string(), TOS_NODE_ID, node_colors);
   }
 
   event void Boot.booted() {
     setColor();
 
-    ulog("MulticastToken", "Colors enabled: %8s", btoa(node_colors));
+    ulog("MulticastCommunications", "Colors enabled: %8s", btoa(node_colors));
 
     call RadioControl.start();
   }
@@ -187,7 +185,7 @@ implementation {
         rebuildSeqno = (uint8_t) call Random.rand16();
         post broadcastRebuildTree();
 
-        call TimeoutUpdateColors.startPeriodic(MT_PERIOD);
+        call TimeoutUpdateColors.startPeriodic(MC_UPDATE_PERIOD);
       }else
         call SendTimer.startPeriodic(11 * 1024);
 
@@ -196,7 +194,7 @@ implementation {
   }
 
   event void TimeoutUpdateColors.fired() {
-    ulog("MulticastToken", "Time to rebuild the MT tree...");
+    ulog("MulticastCommunications", "Time to rebuild the MT tree...");
     rebuildSeqno = (uint8_t) call Random.rand16();
     post broadcastRebuildTree();
   }
@@ -208,7 +206,7 @@ implementation {
   }
 
   task void sendData() {
-    nx_mt_msg_t *payload;
+    nx_mc_msg_t *payload;
     error_t sendResult;
 
     if (sending){
@@ -216,15 +214,15 @@ implementation {
       return;
     }
 
-    payload = (nx_mt_msg_t *) call CtpSend.getPayload(&mtPacket, sizeof(nx_mt_msg_t));
+    payload = (nx_mc_msg_t *) call CtpSend.getPayload(&mtPacket, sizeof(nx_mc_msg_t));
 
-    payload->flags = MT_FLAGS_DATA; // | MT_FLAGS_ANYCAST;
-    payload->color = MT_WHITE;
+    payload->flags = MC_FLAGS_DATA; // | MC_FLAGS_ANYCAST;
+    payload->color = MC_WHITE;
     payload->data = dataToSend;
 
-    dbg_clear("MulticastTokenStatistics", "%s : %u : send [ data = %u , color = %u , multicast = %d ]\n", sim_time_string(), TOS_NODE_ID, payload->data, payload->color, !isAnycast(payload));
-    ulog("MulticastToken", "Sending data [color=%8s, data=%u]", btoa(payload->color), payload->data);
-    sendResult = call CtpSend.send(&mtPacket, sizeof(nx_mt_msg_t));
+    dbg_clear("MulticastCommunicationsStatistics", "%s : %u : send [ data = %u , color = %u , multicast = %d ]\n", sim_time_string(), TOS_NODE_ID, payload->data, payload->color, !isAnycast(payload));
+    ulog("MulticastCommunications", "Sending data [color=%8s, data=%u]", btoa(payload->color), payload->data);
+    sendResult = call CtpSend.send(&mtPacket, sizeof(nx_mc_msg_t));
 
     if (sendResult == SUCCESS)
       sending = TRUE;
@@ -235,7 +233,7 @@ implementation {
   }
 
   task void broadcastRebuildTree(){
-    nx_mt_msg_t *payload;
+    nx_mc_msg_t *payload;
     error_t sendResult;
 
     if (sending){
@@ -243,13 +241,13 @@ implementation {
       return;
     }
 
-    payload = (nx_mt_msg_t *) call AMSend.getPayload(&mtPacket, sizeof(nx_mt_msg_t));
+    payload = (nx_mc_msg_t *) call AMSend.getPayload(&mtPacket, sizeof(nx_mc_msg_t));
 
-    payload->flags = MT_FLAGS_REBUILD;
+    payload->flags = MC_FLAGS_REBUILD;
     payload->seqno = rebuildSeqno;
 
-    ulog("MulticastToken", "Broadcasting rebuildTree [seqno=%d]", payload->seqno);
-    sendResult = call AMSend.send(AM_BROADCAST_ADDR, &mtPacket, sizeof(nx_mt_msg_t));
+    ulog("MulticastCommunications", "Broadcasting rebuildTree [seqno=%d]", payload->seqno);
+    sendResult = call AMSend.send(AM_BROADCAST_ADDR, &mtPacket, sizeof(nx_mc_msg_t));
 
     if (sendResult == SUCCESS)
       sending = TRUE;
@@ -259,7 +257,7 @@ implementation {
   }
 
   task void updateColors(){
-    nx_mt_msg_t *payload;
+    nx_mc_msg_t *payload;
     error_t sendResult;
 
     if (sending){
@@ -267,13 +265,13 @@ implementation {
       return;
     }
 
-    payload = (nx_mt_msg_t *) call CtpSend.getPayload(&mtPacket, sizeof(nx_mt_msg_t));
+    payload = (nx_mc_msg_t *) call CtpSend.getPayload(&mtPacket, sizeof(nx_mc_msg_t));
 
-    payload->flags = MT_FLAGS_UPDATE;
+    payload->flags = MC_FLAGS_UPDATE;
     payload->color = node_colors | children_colors;
 
-    ulog("MulticastToken", "Sending update [colors=%8s]", btoa(payload->color));
-    sendResult = call CtpSend.send(&mtPacket, sizeof(nx_mt_msg_t));
+    ulog("MulticastCommunications", "Sending update [colors=%8s]", btoa(payload->color));
+    sendResult = call CtpSend.send(&mtPacket, sizeof(nx_mc_msg_t));
 
     if (sendResult == SUCCESS)
       sending = TRUE;
@@ -294,7 +292,7 @@ implementation {
     // Remove it only when returning from the sendDone
     msg = call ForwardQueue.head();
 
-    sendResult = call AMSend.send(AM_BROADCAST_ADDR, msg, sizeof(nx_mt_msg_t));
+    sendResult = call AMSend.send(AM_BROADCAST_ADDR, msg, sizeof(nx_mc_msg_t));
     if (sendResult == SUCCESS)
       sending = TRUE;
     else
@@ -303,10 +301,10 @@ implementation {
   }
 
   event void AMSend.sendDone(message_t* msg, error_t error){
-    nx_mt_msg_t *payload;
+    nx_mc_msg_t *payload;
     sending = FALSE;
 
-    payload = call AMSend.getPayload(msg, sizeof(nx_mt_msg_t));
+    payload = call AMSend.getPayload(msg, sizeof(nx_mc_msg_t));
 
     if (error == SUCCESS){
       if ( TOS_NODE_ID != 0 && isRebuild(payload) ){
@@ -315,7 +313,7 @@ implementation {
       }else if (isData(payload)){
         // Correctlu sent the DATA message. Now remove it from the pool and the queue
         if (msg != call ForwardQueue.head()){
-          ulog("MulticastToken", "FATAL ERROR: expected Queue.head() and msg to be the same");
+          ulog("MulticastCommunications", "FATAL ERROR: expected Queue.head() and msg to be the same");
           return;
         }
         call ForwardPool.put(call ForwardQueue.dequeue());
@@ -324,7 +322,7 @@ implementation {
         post flushForwardQueue();
       }
     }else{
-      ulog("MulticastToken", "ERROR: sendDone returned %d", error);
+      ulog("MulticastCommunications", "ERROR: sendDone returned %d", error);
     }
   }
 
@@ -336,14 +334,14 @@ implementation {
     sending = FALSE;
 
     if (error != SUCCESS){
-      ulog("MulticastToken", "ERROR from the CtpSend.sendDone %d", error);
+      ulog("MulticastCommunications", "ERROR from the CtpSend.sendDone %d", error);
     }
   }
 
   message_t* receiveDelegate(message_t* msg, void* payload, uint8_t len){
     message_t *newmsg;
-    nx_mt_msg_t *out;
-    nx_mt_msg_t *p = (nx_mt_msg_t *) payload;
+    nx_mc_msg_t *out;
+    nx_mc_msg_t *p = (nx_mc_msg_t *) payload;
 
     // Case of REBUILD message
     if (isRebuild(p)){
@@ -366,8 +364,8 @@ implementation {
       // Update the children colors
       children_colors |= p->color;
 
-      ulog("MulticastToken", "Received update [p->colors=%8s]", btoa(p->color));
-      ulog("MulticastToken", "    children_colors=%8s", btoa(children_colors));
+      ulog("MulticastCommunications", "Received update [p->colors=%8s]", btoa(p->color));
+      ulog("MulticastCommunications", "    children_colors=%8s", btoa(children_colors));
     }else if (isData(p)){
       // Data Message
 
@@ -392,12 +390,12 @@ implementation {
         }
 
         // Copy the received payload inside the new packet payload
-        out = (nx_mt_msg_t *) call AMSend.getPayload(newmsg, sizeof(nx_mt_msg_t));
+        out = (nx_mc_msg_t *) call AMSend.getPayload(newmsg, sizeof(nx_mc_msg_t));
         if (out == NULL){
           call ForwardPool.put(newmsg);
           return msg;
         }
-        memcpy(out, p, sizeof(nx_mt_msg_t));
+        memcpy(out, p, sizeof(nx_mc_msg_t));
 
         out->seqno = dataSeqno;
 
@@ -417,11 +415,11 @@ implementation {
   }
 
   event message_t* AMReceive.receive(message_t* msg, void* payload, uint8_t len){
-    nx_mt_msg_t *p = (nx_mt_msg_t *) payload;
-    //ulog("MulticastToken", "Received message!");
+    nx_mc_msg_t *p = (nx_mc_msg_t *) payload;
+    //ulog("MulticastCommunications", "Received message!");
 
     if (isUpdate(p)){
-      ulog("MulticastToken", "FATAL ERROR: received MT_FLAGS_UPDATE from AMReceive!");
+      ulog("MulticastCommunications", "FATAL ERROR: received MC_FLAGS_UPDATE from AMReceive!");
       return msg;
     }
     
@@ -433,11 +431,11 @@ implementation {
   }
 
   event message_t* CtpReceive.receive(message_t* msg, void* payload, uint8_t len) {
-    nx_mt_msg_t *p = (nx_mt_msg_t *) payload;
+    nx_mc_msg_t *p = (nx_mc_msg_t *) payload;
 
     if (isRebuild(p)){
       // This should never happen
-      ulog("MulticastToken", "FATAL ERROR: received MT_FLAGS_REBUILD from CtpReceive!");
+      ulog("MulticastCommunications", "FATAL ERROR: received MC_FLAGS_REBUILD from CtpReceive!");
       return msg;
     }
 
@@ -445,11 +443,11 @@ implementation {
   }
 
   event bool CtpIntercept.forward(message_t* msg, void* payload, uint8_t len){
-    nx_mt_msg_t* p = (nx_mt_msg_t *) payload;
+    nx_mc_msg_t* p = (nx_mc_msg_t *) payload;
     bool needToForward;
 
     if (isUpdate(p)){
-      ulog("MulticastToken", "Intercepted message [colors=%8s]", btoa(p->color));
+      ulog("MulticastCommunications", "Intercepted message [colors=%8s]", btoa(p->color));
 
       // needToForward will be true if the p->node_colors is included in the already sent colors (i.e. children_colors | node_colors)
       needToForward = ((p->color | children_colors | node_colors) != (children_colors | node_colors));
@@ -457,12 +455,12 @@ implementation {
       // update the children colors adding the received ones
       children_colors |= (p->color);
 
-      ulog("MulticastToken", "End of intercept. Colors: [children=%8s], forward=%d", btoa(children_colors), needToForward);
+      ulog("MulticastCommunications", "End of intercept. Colors: [children=%8s], forward=%d", btoa(children_colors), needToForward);
 
       return needToForward;
     }else if (isRebuild(p)){
       // This should never happen
-      ulog("MulticastToken", "FATAL ERROR: received MT_FLAGS_REBUILD from CtpForward!");
+      ulog("MulticastCommunications", "FATAL ERROR: received MC_FLAGS_REBUILD from CtpForward!");
       return FALSE;
     }else{
       // Data Message

@@ -1,13 +1,13 @@
-#include "MulticastToken.h"
+#include "MulticastCommunications.h"
 
-configuration MulticastTokenAppC {}
+configuration MulticastCommunicationsAppC {}
 
 implementation {
-	components MulticastTokenC as App;
+	components MulticastCommunicationsC as App;
   components MainC;
 
   components ActiveMessageC;
-  components new CollectionSenderC(MT_MSG_ID);
+  components new CollectionSenderC(MC_MSG_ID);
   components CollectionC;
 
   components new TimerMilliC() as Timer0;
@@ -34,16 +34,16 @@ implementation {
   App.RoutingControl -> CollectionC.StdControl;
   App.RootControl -> CollectionC.RootControl;
   App.CtpSend -> CollectionSenderC;
-  App.CtpReceive -> CollectionC.Receive[MT_MSG_ID];
-  App.CtpIntercept -> CollectionC.Intercept[MT_MSG_ID];
+  App.CtpReceive -> CollectionC.Receive[MC_MSG_ID];
+  App.CtpIntercept -> CollectionC.Intercept[MC_MSG_ID];
   App.CtpPacket -> CollectionC.CtpPacket;
 
   //App.Packet -> ActiveMessageC;
   //App.AMPacket -> ActiveMessageC;
 
 
-  components new AMSenderC(MT_MSG_ID) as AMSenderMsg;
-  components new AMReceiverC(MT_MSG_ID) as AMReceiverMsg;
+  components new AMSenderC(MC_MSG_ID) as AMSenderMsg;
+  components new AMReceiverC(MC_MSG_ID) as AMReceiverMsg;
   App.AMSend -> AMSenderMsg;
   App.AMReceive -> AMReceiverMsg;
 }

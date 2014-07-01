@@ -88,8 +88,8 @@ def run_simulation(sim_time, topology_file):
 
     # Add channels here. For instance:
     
-    #t.addChannel("MulticastToken", sys.stdout)
-    t.addChannel("MulticastTokenStatistics", sys.stdout)
+    #t.addChannel("MulticastCommunications", sys.stdout)
+    t.addChannel("MulticastCommunicationsStatistics", sys.stdout)
     
     simulation_loop(t, sim_time)
     

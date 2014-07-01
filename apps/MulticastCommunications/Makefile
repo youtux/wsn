@@ -1,4 +1,4 @@
-COMPONENT=MulticastTokenAppC
+COMPONENT=MulticastCommunicationsAppC
 
 CFLAGS += -I$(TOSDIR)/lib/net \
 	-I$(TOSDIR)/lib/net/le \
