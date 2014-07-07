@@ -516,6 +516,9 @@ implementation {
 
       // At the end, handle the received data.
 
+      ulog("MulticastCommunications", "Received valid DATA message [data=%d, color=%s]", p->data, btoa(p->color));
+      ulog("MulticastCommunications", "Status: children_colors=%s", btoa(children_colors));
+
       if (TOS_NODE_ID == 0){
         // I'm the root -> increment sequence number
         dataSeqno++;
@@ -565,6 +568,8 @@ implementation {
         backoff = (uint8_t) call Random.rand16() % 16;
         txtimer_status = MC_TXTIMER_STATUS_DATA;
         call TxTimer.startOneShot(backoff);
+
+        ulog("MulticastCommunications", "Message [data=%d, color=%s] queued for transmission", new_payload->data, btoa(new_payload->color));
       }
 
       // Now I can handle the received data if the message is for me
