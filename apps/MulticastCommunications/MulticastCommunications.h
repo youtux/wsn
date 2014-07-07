@@ -34,10 +34,22 @@ typedef nx_uint8_t nx_mc_flags_t;
 typedef uint32_t mc_data_t;
 typedef nx_uint32_t nx_mc_data_t;
 
+// MulticastCommunication packet
 typedef nx_struct nx_mc_msg {
+  // Flags: REBUILD, UPDATE, DATA (, anycast)
   nx_mc_flags_t flags;
+
+  // The sequence number. Different semantics according to the flags:
+  // DATA -> incremental
+  // REBUILD -> random
   nx_uint16_t seqno;
+
+  // Color. Different semantics according to the flags:
+  // DATA -> destination color
+  // UPDATE -> aggregated sub-tree colors
   nx_mc_color_t color;
+
+  // Actual data. Used only in DATA messages
   nx_mc_data_t data;
 } nx_mc_msg_t;
 
