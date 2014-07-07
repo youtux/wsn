@@ -88,17 +88,20 @@ def run_simulation(sim_time, topology_file):
 
     # Add channels here. For instance:
     
-    #t.addChannel("MulticastCommunications", sys.stdout)
+    # MulticastCommunications channel is used for debug -> stderr
+    t.addChannel("MulticastCommunications", sys.stderr)
+    # MulticastCommunicationsStatistics is used for measurements -> stdout
     t.addChannel("MulticastCommunicationsStatistics", sys.stdout)
     
     simulation_loop(t, sim_time)
-    
-    # t1 = t.getNode(1)
-    # v1 = t1.getVariable("dataToSend")
-    # pdb.set_trace()
+  
 
-    # simulation_loop(t, sim_time/2)    
-
+minute = 60
+hour = minute * 60
+day = hour * 24
+week = day * 7
+month = day * 30
+year = day * 365
 
 # Make a call to run_simulation here
-run_simulation(60 * 20 , "topology1.out")
+run_simulation(day, "project-topology.out")

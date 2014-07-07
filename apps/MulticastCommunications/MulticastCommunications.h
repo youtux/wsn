@@ -4,6 +4,7 @@
 #define MC_MSG_ID 12
 #define MC_UPDATE_PERIOD 60 * 1024
 
+// Colors enumeration
 enum {
 	MC_WHITE     = 0b00000001,
 	MC_BLACK     = 0b00000010,
@@ -19,6 +20,7 @@ enum {
 typedef uint8_t mc_color_t;
 typedef nx_uint8_t nx_mc_color_t;
 
+// Flags enumeration
 enum {
   MC_FLAGS_ANYCAST   = 0b00000001,
   MC_FLAGS_DATA      = 0b00000010,
@@ -34,7 +36,7 @@ typedef nx_uint32_t nx_mc_data_t;
 
 typedef nx_struct nx_mc_msg {
   nx_mc_flags_t flags;
-  nx_uint8_t seqno;
+  nx_uint16_t seqno;
   nx_mc_color_t color;
   nx_mc_data_t data;
 } nx_mc_msg_t;

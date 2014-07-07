@@ -4,46 +4,52 @@ configuration MulticastCommunicationsAppC {}
 
 implementation {
 	components MulticastCommunicationsC as App;
+  
   components MainC;
-
-  components ActiveMessageC;
-  components new CollectionSenderC(MC_MSG_ID);
-  components CollectionC;
-
-  components new TimerMilliC() as Timer0;
-  components new TimerMilliC() as Timer1;
-  components new TimerMilliC() as Timer2;
-
-  components new QueueC(message_t *, 10) as ForwardQueue;
-  components new PoolC(message_t, 10) as ForwardPool;
-
-  components RandomC;
-
   App.Boot -> MainC.Boot;
 
-  App.TimeoutUpdateColors -> Timer0;
-  App.SleepBeforeSendingUpdates -> Timer1;
-  App.SendTimer -> Timer2;
-
+  components RandomC;
   App.Random -> RandomC;
 
+  // Timers
+  components new TimerMilliC() as Timer0;
+  App.ResetTreePeriod -> Timer0;
+
+  components new TimerMilliC() as Timer1;
+  App.TxTimer -> Timer1;
+
+  components new TimerMilliC() as Timer2;
+  App.SendTimer -> Timer2;
+
+  components new TimerMilliC() as Timer3;
+  App.TimeoutLostResetTree -> Timer3;
+
+  // Forwarder queue
+  components new QueueC(message_t *, 10) as ForwardQueue;
   App.ForwardQueue -> ForwardQueue;
+
+  // Memory management for the forwarding queue
+  components new PoolC(message_t, 10) as ForwardPool;
   App.ForwardPool -> ForwardPool;
 
+  // Radio
+  components ActiveMessageC;
   App.RadioControl -> ActiveMessageC;
-  App.RoutingControl -> CollectionC.StdControl;
-  App.RootControl -> CollectionC.RootControl;
-  App.CtpSend -> CollectionSenderC;
+
+  // CTP
+  components CollectionC;
+  App.CtpRoutingControl -> CollectionC.StdControl;
+  App.CtpRootControl -> CollectionC.RootControl;
   App.CtpReceive -> CollectionC.Receive[MC_MSG_ID];
   App.CtpIntercept -> CollectionC.Intercept[MC_MSG_ID];
-  App.CtpPacket -> CollectionC.CtpPacket;
+  //App.CtpPacket -> CollectionC.CtpPacket;
 
-  //App.Packet -> ActiveMessageC;
-  //App.AMPacket -> ActiveMessageC;
+  components new CollectionSenderC(MC_MSG_ID);
+  App.CtpSend -> CollectionSenderC;
 
-
-  components new AMSenderC(MC_MSG_ID) as AMSenderMsg;
-  components new AMReceiverC(MC_MSG_ID) as AMReceiverMsg;
-  App.AMSend -> AMSenderMsg;
-  App.AMReceive -> AMReceiverMsg;
+  // Send and receive
+  components new AMSenderC(MC_MSG_ID) as AMSender;
+  components new AMReceiverC(MC_MSG_ID) as AMReceiver;
+  App.AMSend -> AMSender;
+  App.AMReceive -> AMReceiver;
 }
