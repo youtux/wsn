@@ -47,12 +47,12 @@ def waitForSync ():
 framer=ppp4py.hdlc.HDLCforPPP(compress_ac=compress_ac)
 pppd = ppp4py.PPP(framer=framer)
 
-def GetPacket ():
+def GetPacket():
     timeout = 5000
     while poller.poll(timeout):
         c = surf.read()
         #print 'RX %s' % (binascii.hexlify(c),)
         framer.putBytes(c)
         pkt = framer.getPacket()
-        if (pkt is not None) and (0 < len(pkt)):
+        if pkt is not None and len(pkt) > 0:
             return pkt

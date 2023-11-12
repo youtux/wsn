@@ -35,14 +35,14 @@
 from tinyos.tossim.TossimNescDecls import *
 
 class NescVariables(object) :
-  def __init__( self, applicationName="Unknown App", xmlFilename=None ) :
+  def __init__( self, applicationName="Unknown App", xmlFilename=None ):
     self.applicationName = applicationName
     self._varNames = []
     self._vars = []
 
     dom = minidom.parse(xmlFilename)
-    variableList = [node for node in dom.getElementsByTagName("variables")]
-    while len(variableList) > 0:
+    variableList = list(dom.getElementsByTagName("variables"))
+    while variableList:
       variables = variableList.pop(0).getElementsByTagName("variable")
       while len(variables) > 0:
         cVariable = 0
@@ -60,15 +60,15 @@ class NescVariables(object) :
           index = fileName.rfind("/") # First check for a UNIX path
           if (index == -1):
             index = fileName.rfind("\\") # Then a windows path
-            if (index == -1):
-              index = fileName.rfind(":") # Then if it's in the local dir
+          if (index == -1):
+            index = fileName.rfind(":") # Then if it's in the local dir
 
           if (index != -1):
             fileName = fileName[index+1:]
             index = fileName.rfind(".")
-            if (index != -1):
-              fileName = fileName[0:index]
-              name = fileName + "." + name
+          if (index != -1):
+            fileName = fileName[:index]
+            name = f"{fileName}.{name}"
 
         varType = "unknown"
         varTypes = variable.getElementsByTagName("type-float")
@@ -77,7 +77,7 @@ class NescVariables(object) :
 
         if (len(variable.getElementsByTagName("type-array")) > 0):
           isArray = 1
-          
+
         if (len(varTypes) > 0):
           varTypeEntry = varTypes[0]
           varType = varTypeEntry.getAttribute("cname")
@@ -91,18 +91,18 @@ class NescVariables(object) :
             self._vars.append("simple")
           self._vars.append(str(varType))
              
-  def __str__(self) :
+  def __str__(self):
     """ Print all available variables."""
     string = "\n"
     name = 1
-    for val in self._varNames :
-      if (name):
+    for val in self._varNames:
+      if name:
         string += "\t" + val
         name = 0
       else:
-        string += ": " + val + "\n"
+        string += f": {val}" + "\n"
         name = 1
-        
+
     return string
      
   def variables(self):
@@ -187,8 +187,8 @@ class NescTypes( object ) :
     self._typeNames.sort()
     #self.printSkippedTypes()
   
-  def addType(self, value) :
-    if not value.nescType in self._typeNames :
+  def addType(self, value):
+    if value.nescType not in self._typeNames:
       self._typeNames.append(value.nescType)
     self._types[value.nescType] = value #XXX: why does this have to be unconditional??
     if not self._types.has_key(value.cType):
@@ -371,30 +371,27 @@ class NescEnums( object ) :
     else:
       raise AttributeError("No such enum defined")
       
-  def createEnumsFromXml(self, dom) :
+  def createEnumsFromXml(self, dom):
 
     #now define all the struct types
-    enumDefs = [node for node in dom.getElementsByTagName("enum")]
+    enumDefs = list(dom.getElementsByTagName("enum"))
     integer = re.compile('^I:(\d+)$')
     hexidecimal = re.compile('^(0x[\dabcdefABCDEF]+)$')
-    
-    for enumDef in enumDefs :
+
+    for enumDef in enumDefs:
       name = enumDef.getAttribute("name")
       if name in self._enums :
         continue
       value = enumDef.getAttribute("value")
       match = integer.match(value)
-      if match != None :
-        self.__dict__[name] = int(match.groups()[0])
-      else :
+      if match is None:
         match = hexidecimal.match(value)
-        if match != None :
-          self.__dict__[name] = int(match.groups()[0], 16)
-        else :
-          self.__dict__[name] = value
+        self.__dict__[name] = int(match.groups()[0], 16) if match != None else value
+      else:
+        self.__dict__[name] = int(match.groups()[0])
       self._enums.append(name)
-      
-    namedEnums = [node for node in dom.getElementsByTagName("namedEnum")]
+
+    namedEnums = list(dom.getElementsByTagName("namedEnum"))
     for namedEnum in namedEnums :
       name = namedEnum.getAttribute("name")
       self.__dict__[name] = NescEnums(namedEnum,name)
@@ -503,5 +500,5 @@ Your nesC app cannot be imported.  Be sure that you compiled with the \"nescDecl
     return string
 
   def configureTossim(self):
-    for var in variables:
+    for _ in variables:
       Mote.var

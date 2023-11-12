@@ -152,7 +152,7 @@ class SerialMIB600:
             c = self._s.recv(1)
         except socket.timeout:
             c = ''
-        if c == '':
+        if not c:
             raise Timeout
         #print 'Serial:getByte: 0x%02x' % ord(c)
         return ord(c)
@@ -303,7 +303,7 @@ class HDLC:
         packet.append((crc >> 8) & 0xff)
         packet = [HDLC_FLAG_BYTE] + self._escape(packet) + [HDLC_FLAG_BYTE]
 
-        self.log("Serial: write %s" % packet)
+        self.log(f"Serial: write {packet}")
         self._s.putBytes(packet)
 
     def _format(self, payload):
@@ -322,17 +322,14 @@ class HDLC:
         crc = base_crc
         for b in frame_data:
             crc = crc ^ (b << 8)
-            for i in range(0, 8):
-                if crc & 0x8000 == 0x8000:
-                    crc = (crc << 1) ^ 0x1021
-                else:
-                    crc = crc << 1
+            for _ in range(0, 8):
+                crc = (crc << 1) ^ 0x1021 if crc & 0x8000 == 0x8000 else crc << 1
                 crc = crc & 0xffff
         return crc
 
     def _encode(self, val, dim):
         output = []
-        for i in range(dim):
+        for _ in range(dim):
             output.append(val & 0xFF)
             val = val >> 8
         return output
@@ -359,9 +356,8 @@ class HDLC:
     def _escape(self, packet):
         r = []
         for b in packet:
-            if b == HDLC_FLAG_BYTE or b == HDLC_CTLESC_BYTE:
-                r.append(HDLC_CTLESC_BYTE)
-                r.append(b ^ 0x20)
+            if b in [HDLC_FLAG_BYTE, HDLC_CTLESC_BYTE]:
+                r.extend((HDLC_CTLESC_BYTE, b ^ 0x20))
             else:
                 r.append(b)
         return r
@@ -378,8 +374,7 @@ class SimpleAM(object):
         self.oobHook = oobHook
 
     def read(self, timeout=None):
-        f = self._hdlc.read(timeout)
-        if f:
+        if f := self._hdlc.read(timeout):
             return ActiveMessage(NoAckDataFrame(f))
         return None
 
@@ -518,16 +513,14 @@ class Packet:
 
     def _encode(self, val, dim):
         output = []
-        for i in range(dim):
+        for _ in range(dim):
             output.append(int(val & 0xFF))
             val = val >> 8
         output.reverse()
         return output
 
     def _sign(self, val, dim):
-        if val > (1 << (dim * 8 - 1)):
-            return val - (1 << (dim * 8))
-        return val
+        return val - (1 << (dim * 8)) if val > (1 << (dim * 8 - 1)) else val
 
     def __init__(self, desc, packet = None):
         offset = 0
@@ -535,7 +528,7 @@ class Packet:
         sum = 0
         for i in range(len(desc)-1, -1, -1):
             (n, t, s) = desc[i]
-            if s == None:
+            if s is None:
                 if sum > 0:
                     desc[i] = (n, t, -sum)
                 break
@@ -575,18 +568,19 @@ class Packet:
             for i in packet:
                 self._values.append(i)
         else:
-            for v in self._schema:
+            for _ in self._schema:
                 self._values.append(None)
 
     def __repr__(self):
         return self._values.__repr__()
 
     def __str__(self):
-        r = ""
-        for i in range(len(self._names)):
-            r += "%s: %s " % (self._names[i], self._values[i])
+        r = "".join(
+            f"{self._names[i]}: {self._values[i]} "
+            for i in range(len(self._names))
+        )
         for i in range(len(self._names), len(self._values)):
-            r += "%s" % self._values[i]
+            r += f"{self._values[i]}"
         return r
 
     # Implement the struct behavior
@@ -676,10 +670,7 @@ class RawPacket(Packet):
 class AckFrame(Packet):
     def __init__(self, payload = None):
         if isinstance(payload, Packet):
-            if isinstance(payload, RawPacket):
-                payload = payload.data
-            else:
-                payload = payload.payload()
+            payload = payload.data if isinstance(payload, RawPacket) else payload.payload()
         Packet.__init__(self,
                         [('protocol', 'int', 1),
                          ('seqno',    'int', 1)],
@@ -688,10 +679,7 @@ class AckFrame(Packet):
 class DataFrame(Packet):
     def __init__(self, payload = None):
         if isinstance(payload, Packet):
-            if isinstance(payload, RawPacket):
-                payload = payload.data
-            else:
-                payload = payload.payload()
+            payload = payload.data if isinstance(payload, RawPacket) else payload.payload()
         Packet.__init__(self,
                         [('protocol',  'int', 1),
                          ('seqno',     'int', 1),
@@ -702,10 +690,7 @@ class DataFrame(Packet):
 class NoAckDataFrame(Packet):
     def __init__(self, payload = None):
         if isinstance(payload, Packet):
-            if isinstance(payload, RawPacket):
-                payload = payload.data
-            else:
-                payload = payload.payload()
+            payload = payload.data if isinstance(payload, RawPacket) else payload.payload()
         Packet.__init__(self,
                         [('protocol',  'int', 1),
                          ('dispatch',  'int', 1),
@@ -729,7 +714,7 @@ class ActiveMessage(Packet):
                          ('type',        'int', 1),
                          ('data',        'blob', None)],
                         payload)
-        if payload == None:
+        if payload is None:
             self.destination = dest
             self.source = 0x0000
             self.group = 0x00

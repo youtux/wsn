@@ -79,44 +79,47 @@ class SingletonException(Exception):
         self.args = args
 
 class MetaSingleton(type):
-    def __new__(metaclass, strName, tupBases, dict):
+    def __new__(cls, strName, tupBases, dict):
         if dict.has_key('__new__'):
             raise SingletonException, 'Can not override __new__ in a Singleton'
-        return super(MetaSingleton,metaclass).__new__(metaclass, strName, tupBases, dict)
+        return super(MetaSingleton, cls).__new__(cls, strName, tupBases, dict)
         
-    def __call__(cls, *lstArgs, **dictArgs):
+    def __call__(self, *lstArgs, **dictArgs):
         raise SingletonException, 'Singletons may only be instantiated through getInstance()'
         
 class Singleton(object):
     __metaclass__ = MetaSingleton
     
-    def getInstance(cls, *lstArgs):
+    def getInstance(self, *lstArgs):
         """
         Call this to instantiate an instance or retrieve the existing instance.
         If the singleton requires args to be instantiated, include them the first
         time you call getInstance.        
         """
-        if cls._isInstantiated():
-            if len(lstArgs) != 0:
+        if self._isInstantiated():
+            if lstArgs:
                 raise SingletonException, 'If no supplied args, singleton must already be instantiated, or __init__ must require no args'
         else:
-            if cls._getConstructionArgCountNotCountingSelf() > 0 and len(lstArgs) <= 0:
+            if (
+                self._getConstructionArgCountNotCountingSelf() > 0
+                and len(lstArgs) <= 0
+            ):
                 raise SingletonException, 'If the singleton requires __init__ args, supply them on first instantiation'
-            instance = cls.__new__(cls)
+            instance = self.__new__(self)
             instance.__init__(*lstArgs)
-            cls.cInstance = instance
-        return cls.cInstance
+            self.cInstance = instance
+        return self.cInstance
     getInstance = classmethod(getInstance)
     
-    def _isInstantiated(cls):
-        return hasattr(cls, 'cInstance')
+    def _isInstantiated(self):
+        return hasattr(self, 'cInstance')
     _isInstantiated = classmethod(_isInstantiated)  
 
-    def _getConstructionArgCountNotCountingSelf(cls):
-        return cls.__init__.im_func.func_code.co_argcount - 1
+    def _getConstructionArgCountNotCountingSelf(self):
+        return self.__init__.im_func.func_code.co_argcount - 1
     _getConstructionArgCountNotCountingSelf = classmethod(_getConstructionArgCountNotCountingSelf)
 
-    def _forgetClassInstanceReferenceForTesting(cls):
+    def _forgetClassInstanceReferenceForTesting(self):
         """
         This is designed for convenience in testing -- sometimes you 
         want to get rid of a singleton during test code to see what
@@ -126,11 +129,11 @@ class Singleton(object):
         also need to be deleted.
         """
         try:
-            delattr(cls,'cInstance')
+            delattr(self, 'cInstance')
         except AttributeError:
             # run up the chain of base classes until we find the one that has the instance
             # and then delete it there
-            for baseClass in cls.__bases__: 
+            for baseClass in self.__bases__: 
                 if issubclass(baseClass, Singleton):
                     baseClass._forgetClassInstanceReferenceForTesting()
     _forgetClassInstanceReferenceForTesting = classmethod(_forgetClassInstanceReferenceForTesting)

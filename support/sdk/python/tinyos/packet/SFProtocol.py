@@ -64,8 +64,7 @@ class SFProtocol:
 
     def readPacket(self):
         size = self.ins.read(1)
-        packet = self.ins.read(ord(size))
-        return packet
+        return self.ins.read(ord(size))
 
     def writePacket(self, packet):
         if len(packet) > 255:

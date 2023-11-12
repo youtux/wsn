@@ -43,7 +43,7 @@ m1.createNoiseModel()
 m2.createNoiseModel()
 m3.createNoiseModel()
 
-for i in range(0, 200000):
-    t.runNextEvent();
+for _ in range(0, 200000):
+  t.runNextEvent();
 
     

@@ -127,12 +127,12 @@ class MoteIF:
             print >>sys.stderr, traceback.print_tb(sys.exc_info()[2])
 
     def addSource(self, name=None):
-        if name == None:
+        if name is None:
             name = os.environ.get("MOTECOM", "sf@localhost:9002")
 
         m = re.match(r'([^@]*)@(.*)', name)
-        if m == None:
-            raise MoteIFException("base source '%s'" % (name))
+        if m is None:
+            raise MoteIFException(f"base source '{name}'")
 
         (sourceType, args) = m.groups()
 
@@ -142,7 +142,7 @@ class MoteIF:
             source = tinyos.packet.SerialSource.SerialSource(self, args)
         else:
             raise MoteIFException("bad source")
-        
+
         source.start()
 
         return source

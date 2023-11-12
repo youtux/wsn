@@ -17,26 +17,27 @@ def _swig_setattr_nondynamic(self,class_type,name,value,static=1):
         if type(value).__name__ == 'PySwigObject':
             self.__dict__[name] = value
             return
-    method = class_type.__swig_setmethods__.get(name,None)
-    if method: return method(self,value)
+    if method := class_type.__swig_setmethods__.get(name, None):
+        return method(self,value)
     if (not static) or hasattr(self,name):
         self.__dict__[name] = value
     else:
-        raise AttributeError("You cannot add attributes to %s" % self)
+        raise AttributeError(f"You cannot add attributes to {self}")
 
 def _swig_setattr(self,class_type,name,value):
     return _swig_setattr_nondynamic(self,class_type,name,value,0)
 
 def _swig_getattr(self,class_type,name):
     if (name == "thisown"): return self.this.own()
-    method = class_type.__swig_getmethods__.get(name,None)
-    if method: return method(self)
+    if method := class_type.__swig_getmethods__.get(name, None):
+        return method(self)
     raise AttributeError,name
 
 def _swig_repr(self):
-    try: strthis = "proxy of " + self.this.__repr__()
+    try:
+        strthis = f"proxy of {self.this.__repr__()}"
     except: strthis = ""
-    return "<%s.%s; %s >" % (self.__class__.__module__, self.__class__.__name__, strthis,)
+    return f"<{self.__class__.__module__}.{self.__class__.__name__}; {strthis} >"
 
 import types
 try:
@@ -60,30 +61,54 @@ class MAC(_object):
         except: self.this = this
     __swig_destroy__ = _TOSSIM.delete_MAC
     __del__ = lambda self : None;
-    def initHigh(*args): return _TOSSIM.MAC_initHigh(*args)
-    def initLow(*args): return _TOSSIM.MAC_initLow(*args)
-    def high(*args): return _TOSSIM.MAC_high(*args)
-    def low(*args): return _TOSSIM.MAC_low(*args)
-    def symbolsPerSec(*args): return _TOSSIM.MAC_symbolsPerSec(*args)
-    def bitsPerSymbol(*args): return _TOSSIM.MAC_bitsPerSymbol(*args)
-    def preambleLength(*args): return _TOSSIM.MAC_preambleLength(*args)
-    def exponentBase(*args): return _TOSSIM.MAC_exponentBase(*args)
-    def maxIterations(*args): return _TOSSIM.MAC_maxIterations(*args)
-    def minFreeSamples(*args): return _TOSSIM.MAC_minFreeSamples(*args)
-    def rxtxDelay(*args): return _TOSSIM.MAC_rxtxDelay(*args)
-    def ackTime(*args): return _TOSSIM.MAC_ackTime(*args)
-    def setInitHigh(*args): return _TOSSIM.MAC_setInitHigh(*args)
-    def setInitLow(*args): return _TOSSIM.MAC_setInitLow(*args)
-    def setHigh(*args): return _TOSSIM.MAC_setHigh(*args)
-    def setLow(*args): return _TOSSIM.MAC_setLow(*args)
-    def setSymbolsPerSec(*args): return _TOSSIM.MAC_setSymbolsPerSec(*args)
-    def setBitsBerSymbol(*args): return _TOSSIM.MAC_setBitsBerSymbol(*args)
-    def setPreambleLength(*args): return _TOSSIM.MAC_setPreambleLength(*args)
-    def setExponentBase(*args): return _TOSSIM.MAC_setExponentBase(*args)
-    def setMaxIterations(*args): return _TOSSIM.MAC_setMaxIterations(*args)
-    def setMinFreeSamples(*args): return _TOSSIM.MAC_setMinFreeSamples(*args)
-    def setRxtxDelay(*args): return _TOSSIM.MAC_setRxtxDelay(*args)
-    def setAckTime(*args): return _TOSSIM.MAC_setAckTime(*args)
+    def initHigh(self):
+        return _TOSSIM.MAC_initHigh(*self)
+    def initLow(self):
+        return _TOSSIM.MAC_initLow(*self)
+    def high(self):
+        return _TOSSIM.MAC_high(*self)
+    def low(self):
+        return _TOSSIM.MAC_low(*self)
+    def symbolsPerSec(self):
+        return _TOSSIM.MAC_symbolsPerSec(*self)
+    def bitsPerSymbol(self):
+        return _TOSSIM.MAC_bitsPerSymbol(*self)
+    def preambleLength(self):
+        return _TOSSIM.MAC_preambleLength(*self)
+    def exponentBase(self):
+        return _TOSSIM.MAC_exponentBase(*self)
+    def maxIterations(self):
+        return _TOSSIM.MAC_maxIterations(*self)
+    def minFreeSamples(self):
+        return _TOSSIM.MAC_minFreeSamples(*self)
+    def rxtxDelay(self):
+        return _TOSSIM.MAC_rxtxDelay(*self)
+    def ackTime(self):
+        return _TOSSIM.MAC_ackTime(*self)
+    def setInitHigh(self):
+        return _TOSSIM.MAC_setInitHigh(*self)
+    def setInitLow(self):
+        return _TOSSIM.MAC_setInitLow(*self)
+    def setHigh(self):
+        return _TOSSIM.MAC_setHigh(*self)
+    def setLow(self):
+        return _TOSSIM.MAC_setLow(*self)
+    def setSymbolsPerSec(self):
+        return _TOSSIM.MAC_setSymbolsPerSec(*self)
+    def setBitsBerSymbol(self):
+        return _TOSSIM.MAC_setBitsBerSymbol(*self)
+    def setPreambleLength(self):
+        return _TOSSIM.MAC_setPreambleLength(*self)
+    def setExponentBase(self):
+        return _TOSSIM.MAC_setExponentBase(*self)
+    def setMaxIterations(self):
+        return _TOSSIM.MAC_setMaxIterations(*self)
+    def setMinFreeSamples(self):
+        return _TOSSIM.MAC_setMinFreeSamples(*self)
+    def setRxtxDelay(self):
+        return _TOSSIM.MAC_setRxtxDelay(*self)
+    def setAckTime(self):
+        return _TOSSIM.MAC_setAckTime(*self)
 MAC_swigregister = _TOSSIM.MAC_swigregister
 MAC_swigregister(MAC)
 
@@ -99,12 +124,18 @@ class Radio(_object):
         except: self.this = this
     __swig_destroy__ = _TOSSIM.delete_Radio
     __del__ = lambda self : None;
-    def add(*args): return _TOSSIM.Radio_add(*args)
-    def gain(*args): return _TOSSIM.Radio_gain(*args)
-    def connected(*args): return _TOSSIM.Radio_connected(*args)
-    def remove(*args): return _TOSSIM.Radio_remove(*args)
-    def setNoise(*args): return _TOSSIM.Radio_setNoise(*args)
-    def setSensitivity(*args): return _TOSSIM.Radio_setSensitivity(*args)
+    def add(self):
+        return _TOSSIM.Radio_add(*self)
+    def gain(self):
+        return _TOSSIM.Radio_gain(*self)
+    def connected(self):
+        return _TOSSIM.Radio_connected(*self)
+    def remove(self):
+        return _TOSSIM.Radio_remove(*self)
+    def setNoise(self):
+        return _TOSSIM.Radio_setNoise(*self)
+    def setSensitivity(self):
+        return _TOSSIM.Radio_setSensitivity(*self)
 Radio_swigregister = _TOSSIM.Radio_swigregister
 Radio_swigregister(Radio)
 
@@ -120,20 +151,34 @@ class Packet(_object):
         except: self.this = this
     __swig_destroy__ = _TOSSIM.delete_Packet
     __del__ = lambda self : None;
-    def setSource(*args): return _TOSSIM.Packet_setSource(*args)
-    def source(*args): return _TOSSIM.Packet_source(*args)
-    def setDestination(*args): return _TOSSIM.Packet_setDestination(*args)
-    def destination(*args): return _TOSSIM.Packet_destination(*args)
-    def setLength(*args): return _TOSSIM.Packet_setLength(*args)
-    def length(*args): return _TOSSIM.Packet_length(*args)
-    def setType(*args): return _TOSSIM.Packet_setType(*args)
-    def type(*args): return _TOSSIM.Packet_type(*args)
-    def data(*args): return _TOSSIM.Packet_data(*args)
-    def setData(*args): return _TOSSIM.Packet_setData(*args)
-    def maxLength(*args): return _TOSSIM.Packet_maxLength(*args)
-    def setStrength(*args): return _TOSSIM.Packet_setStrength(*args)
-    def deliver(*args): return _TOSSIM.Packet_deliver(*args)
-    def deliverNow(*args): return _TOSSIM.Packet_deliverNow(*args)
+    def setSource(self):
+        return _TOSSIM.Packet_setSource(*self)
+    def source(self):
+        return _TOSSIM.Packet_source(*self)
+    def setDestination(self):
+        return _TOSSIM.Packet_setDestination(*self)
+    def destination(self):
+        return _TOSSIM.Packet_destination(*self)
+    def setLength(self):
+        return _TOSSIM.Packet_setLength(*self)
+    def length(self):
+        return _TOSSIM.Packet_length(*self)
+    def setType(self):
+        return _TOSSIM.Packet_setType(*self)
+    def type(self):
+        return _TOSSIM.Packet_type(*self)
+    def data(self):
+        return _TOSSIM.Packet_data(*self)
+    def setData(self):
+        return _TOSSIM.Packet_setData(*self)
+    def maxLength(self):
+        return _TOSSIM.Packet_maxLength(*self)
+    def setStrength(self):
+        return _TOSSIM.Packet_setStrength(*self)
+    def deliver(self):
+        return _TOSSIM.Packet_deliver(*self)
+    def deliverNow(self):
+        return _TOSSIM.Packet_deliverNow(*self)
 Packet_swigregister = _TOSSIM.Packet_swigregister
 Packet_swigregister(Packet)
 
@@ -203,7 +248,8 @@ class Variable(_object):
         except: self.this = this
     __swig_destroy__ = _TOSSIM.delete_Variable
     __del__ = lambda self : None;
-    def getData(*args): return _TOSSIM.Variable_getData(*args)
+    def getData(self):
+        return _TOSSIM.Variable_getData(*self)
 Variable_swigregister = _TOSSIM.Variable_swigregister
 Variable_swigregister(Variable)
 
@@ -219,18 +265,30 @@ class Mote(_object):
         except: self.this = this
     __swig_destroy__ = _TOSSIM.delete_Mote
     __del__ = lambda self : None;
-    def id(*args): return _TOSSIM.Mote_id(*args)
-    def euid(*args): return _TOSSIM.Mote_euid(*args)
-    def setEuid(*args): return _TOSSIM.Mote_setEuid(*args)
-    def bootTime(*args): return _TOSSIM.Mote_bootTime(*args)
-    def bootAtTime(*args): return _TOSSIM.Mote_bootAtTime(*args)
-    def isOn(*args): return _TOSSIM.Mote_isOn(*args)
-    def turnOff(*args): return _TOSSIM.Mote_turnOff(*args)
-    def turnOn(*args): return _TOSSIM.Mote_turnOn(*args)
-    def getVariable(*args): return _TOSSIM.Mote_getVariable(*args)
-    def addNoiseTraceReading(*args): return _TOSSIM.Mote_addNoiseTraceReading(*args)
-    def createNoiseModel(*args): return _TOSSIM.Mote_createNoiseModel(*args)
-    def generateNoise(*args): return _TOSSIM.Mote_generateNoise(*args)
+    def id(self):
+        return _TOSSIM.Mote_id(*self)
+    def euid(self):
+        return _TOSSIM.Mote_euid(*self)
+    def setEuid(self):
+        return _TOSSIM.Mote_setEuid(*self)
+    def bootTime(self):
+        return _TOSSIM.Mote_bootTime(*self)
+    def bootAtTime(self):
+        return _TOSSIM.Mote_bootAtTime(*self)
+    def isOn(self):
+        return _TOSSIM.Mote_isOn(*self)
+    def turnOff(self):
+        return _TOSSIM.Mote_turnOff(*self)
+    def turnOn(self):
+        return _TOSSIM.Mote_turnOn(*self)
+    def getVariable(self):
+        return _TOSSIM.Mote_getVariable(*self)
+    def addNoiseTraceReading(self):
+        return _TOSSIM.Mote_addNoiseTraceReading(*self)
+    def createNoiseModel(self):
+        return _TOSSIM.Mote_createNoiseModel(*self)
+    def generateNoise(self):
+        return _TOSSIM.Mote_generateNoise(*self)
 Mote_swigregister = _TOSSIM.Mote_swigregister
 Mote_swigregister(Mote)
 
@@ -246,21 +304,36 @@ class Tossim(_object):
         except: self.this = this
     __swig_destroy__ = _TOSSIM.delete_Tossim
     __del__ = lambda self : None;
-    def init(*args): return _TOSSIM.Tossim_init(*args)
-    def time(*args): return _TOSSIM.Tossim_time(*args)
-    def ticksPerSecond(*args): return _TOSSIM.Tossim_ticksPerSecond(*args)
-    def setTime(*args): return _TOSSIM.Tossim_setTime(*args)
-    def timeStr(*args): return _TOSSIM.Tossim_timeStr(*args)
-    def currentNode(*args): return _TOSSIM.Tossim_currentNode(*args)
-    def getNode(*args): return _TOSSIM.Tossim_getNode(*args)
-    def setCurrentNode(*args): return _TOSSIM.Tossim_setCurrentNode(*args)
-    def addChannel(*args): return _TOSSIM.Tossim_addChannel(*args)
-    def removeChannel(*args): return _TOSSIM.Tossim_removeChannel(*args)
-    def randomSeed(*args): return _TOSSIM.Tossim_randomSeed(*args)
-    def runNextEvent(*args): return _TOSSIM.Tossim_runNextEvent(*args)
-    def mac(*args): return _TOSSIM.Tossim_mac(*args)
-    def radio(*args): return _TOSSIM.Tossim_radio(*args)
-    def newPacket(*args): return _TOSSIM.Tossim_newPacket(*args)
+    def init(self):
+        return _TOSSIM.Tossim_init(*self)
+    def time(self):
+        return _TOSSIM.Tossim_time(*self)
+    def ticksPerSecond(self):
+        return _TOSSIM.Tossim_ticksPerSecond(*self)
+    def setTime(self):
+        return _TOSSIM.Tossim_setTime(*self)
+    def timeStr(self):
+        return _TOSSIM.Tossim_timeStr(*self)
+    def currentNode(self):
+        return _TOSSIM.Tossim_currentNode(*self)
+    def getNode(self):
+        return _TOSSIM.Tossim_getNode(*self)
+    def setCurrentNode(self):
+        return _TOSSIM.Tossim_setCurrentNode(*self)
+    def addChannel(self):
+        return _TOSSIM.Tossim_addChannel(*self)
+    def removeChannel(self):
+        return _TOSSIM.Tossim_removeChannel(*self)
+    def randomSeed(self):
+        return _TOSSIM.Tossim_randomSeed(*self)
+    def runNextEvent(self):
+        return _TOSSIM.Tossim_runNextEvent(*self)
+    def mac(self):
+        return _TOSSIM.Tossim_mac(*self)
+    def radio(self):
+        return _TOSSIM.Tossim_radio(*self)
+    def newPacket(self):
+        return _TOSSIM.Tossim_newPacket(*self)
 Tossim_swigregister = _TOSSIM.Tossim_swigregister
 Tossim_swigregister(Tossim)
 

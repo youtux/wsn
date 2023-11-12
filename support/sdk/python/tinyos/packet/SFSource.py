@@ -41,7 +41,7 @@ class SFSource(PacketSource):
         PacketSource.__init__(self, dispatcher)
 
         m = re.match(r'(.*):(.*)', args)
-        if m == None:
+        if m is None:
             raise PacketSourceException("bad arguments")
 
         (host, port) = m.groups()

@@ -6,11 +6,11 @@ class Protocol (ppp4py.protocol.base.Protocol):
     ProtocolID = 'P4'
     ProtocolName = 'PppPrintf'
 
-    def process (cls, information):
-        sys.stdout.write(cls.Decode(information))
+    def process(self, information):
+        sys.stdout.write(self.Decode(information))
 
     @classmethod
-    def Decode (cls, information):
-        return 'LOG: ' + information[1:]
+    def Decode(cls, information):
+        return f'LOG: {information[1:]}'
 
 ppp4py.protocol.Registry[Protocol.Protocol] = Protocol

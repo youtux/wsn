@@ -22,12 +22,12 @@ class Payload (object):
     def setFromPacked (self, packed):
         self.__dict__.update(zip(self.__FIELDS, struct.unpack(self.__FORMAT, packed[:self.__LENGTH])))
 
-    def pack (self, total_length=None):
+    def pack(self, total_length=None):
         field_values = [ self.__dict__[_f] for _f in self.__FIELDS ]
         packed = struct.pack(self.__FORMAT, *field_values)
         if total_length is not None:
             remainder = total_length - len(packed)
-            if (0 < remainder):
+            if remainder > 0:
                 packed += struct.pack('%dB' % (remainder,), *[(_v & 0xff) for _v in xrange(remainder) ])
         return packed
     

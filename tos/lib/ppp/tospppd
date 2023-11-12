@@ -93,22 +93,19 @@ if args:
 
 print "# %s -H %s -D %s -P %s -B %s %s\n" % (sys.argv[0], host_ppp_fqdn, device_ppp_fqdn, pppd_path, pppd_baud, tinyos_device)
 
-def fqdnToIpv6Addr (fqdn):
+def fqdnToIpv6Addr(fqdn):
     """Convert a host name to an IPv6 address
 
     @param fqdn : A CIDR or fully-qualified domain name"""
     global socket_params
     rv = socket.getaddrinfo(fqdn, 0, *socket_params)
     rv = rv[0]
-    addr = rv[4]
-    return addr
+    return rv[4]
 
-def fqdnToIID (fqdn):
+def fqdnToIID(fqdn):
     """Convert a host name to the IID portion of its IPv6 address."""
     addrstr = fqdnToIpv6Addr(fqdn)[0]
-    if addrstr.startswith('fe80::'):
-        return addrstr[4:]
-    return None
+    return addrstr[4:] if addrstr.startswith('fe80::') else None
 
 host_ppp_iid = fqdnToIID(host_ppp_fqdn)
 device_ppp_iid = fqdnToIID(device_ppp_fqdn)

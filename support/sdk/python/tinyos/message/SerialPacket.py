@@ -19,7 +19,7 @@ class SerialPacket(tinyos.message.Message.Message):
         self.amTypeSet(AM_TYPE)
     
     # Get AM_TYPE
-    def get_amType(cls):
+    def get_amType(self):
         return AM_TYPE
     
     get_amType = classmethod(get_amType)
@@ -215,7 +215,7 @@ class SerialPacket(tinyos.message.Message.Message):
     # Return the size, in bytes, of the field 'header.length'
     #
     def size_header_length(self):
-        return (8 / 8)
+        return 1
     
     #
     # Return the size, in bits, of the field 'header.length'
@@ -270,7 +270,7 @@ class SerialPacket(tinyos.message.Message.Message):
     # Return the size, in bytes, of the field 'header.group'
     #
     def size_header_group(self):
-        return (8 / 8)
+        return 1
     
     #
     # Return the size, in bits, of the field 'header.group'
@@ -325,7 +325,7 @@ class SerialPacket(tinyos.message.Message.Message):
     # Return the size, in bytes, of the field 'header.type'
     #
     def size_header_type(self):
-        return (8 / 8)
+        return 1
     
     #
     # Return the size, in bits, of the field 'header.type'
@@ -401,7 +401,7 @@ class SerialPacket(tinyos.message.Message.Message):
     # Return the size, in bytes, of each element of the array 'data'
     #
     def elementSize_data(self):
-        return (8 / 8)
+        return 1
     
     #
     # Return the size, in bits, of each element of the array 'data'

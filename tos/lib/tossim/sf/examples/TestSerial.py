@@ -57,7 +57,7 @@ for i in range(0, 2):
 sf.process();
 throttle.initialize();
 
-for i in range(0, 60):
+for _ in range(0, 60):
   throttle.checkThrottle();
   t.runNextEvent();
   sf.process();
@@ -77,7 +77,7 @@ pkt.setType(msg.get_amType())
 pkt.setDestination(0)
 pkt.deliver(0, t.time() + 10)
 
-for i in range(0, 20):
+for _ in range(0, 20):
   throttle.checkThrottle();
   t.runNextEvent();
   sf.process();

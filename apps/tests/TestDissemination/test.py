@@ -35,10 +35,10 @@ for line in lines:
 
 for i in range(0, 225):
   m = t.getNode(i);
-  for j in range (0, 100):
+  for _ in range (0, 100):
     m.addNoiseTraceReading(-105)
   m.createNoiseModel()
   m.bootAtTime((t.ticksPerSecond() / 50) * i + 43);
- 
+
 while (t.time() / t.ticksPerSecond() < 600):
   t.runNextEvent()

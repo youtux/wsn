@@ -45,7 +45,7 @@ class PacketDispatcher:
         del self.listeners[listener]
 
     def dispatchPacket(self, source, packet):
-        (addr, amType, group, length) = struct.unpack("<HBBB", packet[0:5])
+        (addr, amType, group, length) = struct.unpack("<HBBB", packet[:5])
         msgData = packet[5:]
 
         #print (addr, amType, group, length)

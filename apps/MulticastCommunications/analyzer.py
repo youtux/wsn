@@ -7,12 +7,7 @@ from datetime import datetime
 
 
 def color_count(colorlist, color):
-	#return reduce(lambda acc, y: acc + (color == y), colorlist)
-	acc = 0
-	for i in colorlist:
-		if i == color:
-			acc += 1
-	return acc
+	return sum(1 for i in colorlist if i == color)
 
 
 def parseLine(readl):
@@ -25,16 +20,14 @@ def parseLine(readl):
 	color = None
 	multicast = None
 
-	if action == "status":
+	if action == "send":
+		data = int(line[8])
+		color = int(line[12])
+		multicast = "multicast" if bool(int(line[16])) else "anycast"
+	elif action == "status":
 		color = int(line[8])
 	else:
 		data = int(line[8])
-		if action == "send":
-			color = int(line[12])
-			if bool(int(line[16])):
-				multicast = "multicast"
-			else:
-				multicast = "anycast"
 	return dict(time=time, node=node, action=action, data=data,
 		color=color, multicast=multicast)
 

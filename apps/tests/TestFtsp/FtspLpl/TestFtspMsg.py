@@ -19,7 +19,7 @@ class TestFtspMsg(tinyos.message.Message.Message):
         self.amTypeSet(AM_TYPE)
 
     # Get AM_TYPE
-    def get_amType(cls):
+    def get_amType(self):
         return AM_TYPE
 
     get_amType = classmethod(get_amType)
@@ -459,7 +459,7 @@ class TestFtspMsg(tinyos.message.Message.Message):
     # Return the size, in bytes, of the field 'is_synced'
     #
     def size_is_synced(self):
-        return (8 / 8)
+        return 1
 
     #
     # Return the size, in bits, of the field 'is_synced'
@@ -569,7 +569,7 @@ class TestFtspMsg(tinyos.message.Message.Message):
     # Return the size, in bytes, of the field 'ftsp_seq'
     #
     def size_ftsp_seq(self):
-        return (8 / 8)
+        return 1
 
     #
     # Return the size, in bits, of the field 'ftsp_seq'
@@ -624,7 +624,7 @@ class TestFtspMsg(tinyos.message.Message.Message):
     # Return the size, in bytes, of the field 'ftsp_table_entries'
     #
     def size_ftsp_table_entries(self):
-        return (8 / 8)
+        return 1
 
     #
     # Return the size, in bits, of the field 'ftsp_table_entries'

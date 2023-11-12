@@ -25,7 +25,7 @@ for [src, dest, gain] in [line.split()[1:] for line in lines if line.startswith(
 
 for nodeId in edges:
     n = t.getNode(nodeId)
-    for i in range(100):
+    for _ in range(100):
         n.addNoiseTraceReading(-105)
     n.createNoiseModel()
     n.bootAtTime(t.ticksPerSecond()/4 * nodeId )
